@@ -1,0 +1,7 @@
+
+syntax = "proto3";
+// We intentially omit a package to trigger our validation rules
+
+message Bad {
+  string foo = 1
+}

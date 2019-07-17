@@ -1,0 +1,15 @@
+#!/bin/bash
+# Copyright © 2019 State Street Bank and Trust Company.  All rights reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# This tool is intended to help capture the request output from the protoc compiler,
+# useful for debugging and/or unit-testing of the protoc-gen-clojure plugin
+#
+# Usage:
+#
+#     REQCAPTURE_OUTPUT=path/to/protoc.request protoc --reqcapture_out=. --plugin=fqp/to/this/script example.proto
+
+OUTPUT=${REQCAPTURE_OUTPUT:-protoc.request}
+
+cat > $OUTPUT

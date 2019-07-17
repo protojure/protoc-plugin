@@ -1,0 +1,115 @@
+// This proto definiton attempts to use every major feature
+// of the proto3 syntax.
+
+syntax = "proto3";
+package com.example.kitchensink;
+
+import "addressbook.proto";
+import "nested/foobar.proto";
+
+message AllThings {
+
+    // scalars
+    double one = 1;
+    float two = 2;
+    int32 three = 3;
+    int64 four = 4;
+    uint32 five = 5;
+    uint64 six = 6;
+    sint32 seven = 7;
+    sint64 eight = 8;
+    fixed32 nine = 9;
+    fixed64 ten = 10;
+    sfixed32 eleven = 11;
+    sfixed64 twelve = 12;
+    bool thirteen = 13;
+    string fourteen = 14;
+    bytes fifteen = 15;
+
+    // imported message
+    .com.example.addressbook.Person person = 16;
+    .com.example.nested.foobar.DependOnThis dependency = 17;
+}
+
+message SimpleString {
+   string s = 1;
+}
+
+enum OEnum {
+   E1        = 0;
+   E2        = 1;
+}
+
+message AllThingsMap {
+    string s = 1;
+    int32 i = 2;
+    map<string, int32> mSimple = 3;
+    map<string, SimpleString> mComplex = 4;
+    SimpleString sSimple = 5;
+    OEnum oe = 6;
+    repeated int32 r = 7;
+}
+
+message NestedMap {
+    SimpleString s = 1;
+    int64 i64 = 2;
+    repeated AllThingsMap ams = 3;
+}
+
+//oneof with a map
+message EmbedOneOf {
+    string s = 1;
+    oneof EOneOf {
+        OEnum e = 2;
+        AllThingsMap atm = 3;
+    }
+}
+
+//message with oneof with a few combinations and variations
+//   . 2 oneofs and an embedded oneof
+//   . oneof's with messages and native types
+//   . oneof with enum
+message OneOf {
+    string firsts = 1;
+    oneof One {
+        string s = 2;
+        SimpleString ss = 3;
+    }
+    oneof AndAnotherOne {
+        string aas = 4;
+        bool aab = 5;
+        OEnum aae = 6;
+    }
+    SimpleString seconds = 7;
+    EmbedOneOf eo = 8;
+    int32 num = 9;
+    OEnum e = 10;
+
+    oneof FinalOne {
+        string fs = 11;
+        bytes fb = 12;
+    }
+}
+
+message GreeterReply {
+    string message = 1;
+}
+
+message SimpleRepeated {
+    repeated int32 data = 1;
+}
+
+// RPC definitions
+service Greeter {
+    rpc Hello(.com.example.addressbook.Person) returns (GreeterReply);
+    rpc sayRepeatHello(.com.example.addressbook.Person) returns (stream GreeterReply);
+    rpc sayHelloToMany(stream .com.example.addressbook.Person) returns (GreeterReply);
+    rpc sayHelloToEveryone(stream .com.example.addressbook.Person) returns (stream GreeterReply);
+}
+
+service GreeterCopy {
+    rpc HelloCopy(.com.example.addressbook.Person) returns (GreeterReply);
+    rpc sayRepeatHelloCopy(.com.example.addressbook.Person) returns (stream GreeterReply);
+    rpc sayHelloToManyCopy(stream .com.example.addressbook.Person) returns (GreeterReply);
+    rpc sayHelloToEveryoneCopy(stream .com.example.addressbook.Person) returns (stream GreeterReply);
+}

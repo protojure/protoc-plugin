@@ -1,0 +1,6 @@
+syntax = "proto3";
+package com.example.nested.foobar;
+
+message DependOnThis {
+	 string dependency = 1;
+	}
