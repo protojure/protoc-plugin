@@ -32,6 +32,6 @@
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.11"]
                                   [io.pedestal/pedestal.service "0.5.5" :exclusions  [org.clojure/tools.reader]]
                                   [me.raynes/fs "1.4.6" :exclusions [org.apache.commons/commons-compress]]
-                                  [protojure "0.4.0-alpha11"]]
+                                  [protojure "1.0.0"]]
                    :source-paths ["target/test"]}
              :uberjar {:aot :all}})
