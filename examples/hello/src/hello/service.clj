@@ -39,7 +39,7 @@
 ;;
 ;; see http://pedestal.io/reference/request-map
 (deftype Greeter []
-  greeter/Greeter
+  greeter/Service
   (Hello
     [this {{:keys [name]} :grpc-params :as request}]
     {:status 200
