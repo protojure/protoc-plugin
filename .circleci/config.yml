@@ -23,6 +23,9 @@ jobs:
                nss
             ./lein deps
       - run: make all
+      - run: |
+          mkdir tmp
+          mv target/protoc-gen-clojure tmp
       - store_artifacts:
-          path: target/
+          path: tmp/
           destination: bin

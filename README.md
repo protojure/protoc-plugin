@@ -1,4 +1,4 @@
-# Protojure protoc compiler plugin
+# Protojure protoc compiler plugin [![CircleCI](https://circleci.com/gh/protojure/protoc-plugin/tree/master.svg?style=svg)](https://circleci.com/gh/protojure/protoc-plugin/tree/master)
 
 [Protoc compiler plugin](https://developers.google.com/protocol-buffers/docs/reference/other) to generate native [Clojure](https://clojure.org/) support for [Google Protocol Buffers](https://developers.google.com/protocol-buffers/) and [GRPC](https://grpc.io/).
 
