@@ -10,9 +10,8 @@
             [protojure.grpc.client.utils :refer [send-unary-params invoke-unary]]
             [com.example.addressbook]
             [promesa.core :as p]
-            [protojure.grpc.server.core :as grpc-server]
-             [io.pedestal.interceptor.helpers :refer [handler]]
-             [com.example.addressbook :refer :all]))
+            [io.pedestal.interceptor.helpers :refer [handler]]
+            [com.example.addressbook :refer :all]))
 
 ;;----------------------------------------------------------------------------------
 ;;----------------------------------------------------------------------------------
@@ -30,6 +29,6 @@
   [ctx request]
   (Hello ctx request))
 
-(def ^:const Greeter-Descriptors
-  [{:pkg "com.example.addressbook" :service "Greeter" :method "Hello" :method-fn Hello-dispatch :server-streaming false :client-streaming false :input pb->Person :output new-HelloResponse}])
+(def ^:const rpc-metadta
+  [{:pkg "com.example.addressbook.Greeter" :service "Greeter" :method "Hello" :method-fn Hello-dispatch :server-streaming false :client-streaming false :input pb->Person :output new-HelloResponse}])
 
