@@ -22,13 +22,13 @@
 ;-----------------------------------------------------------------------------
 ; GRPC Greeter
 ;-----------------------------------------------------------------------------
-(defprotocol Greeter
+(defprotocol Service
   (Hello [this param]))
 
 (defn- Hello-dispatch
   [ctx request]
   (Hello ctx request))
 
-(def ^:const rpc-metadta
-  [{:pkg "com.example.addressbook.Greeter" :service "Greeter" :method "Hello" :method-fn Hello-dispatch :server-streaming false :client-streaming false :input pb->Person :output new-HelloResponse}])
+(def ^:const rpc-metadata
+  [{:pkg "com.example.addressbook" :service "Greeter" :method "Hello" :method-fn Hello-dispatch :server-streaming false :client-streaming false :input pb->Person :output new-HelloResponse}])
 
