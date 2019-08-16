@@ -243,15 +243,14 @@ grpc(generic_namespace, namespace, enums, messages, requires, rpcs, server, clie
 ;;; GRPC <namespace> Service Implementation
 ;;;----------------------------------------------------------------------------------
 (ns <namespace>
-  (:require [protojure.protobuf.serdes :refer :all]
-            [clojure.core.async :refer [\<!! >!! \<! >! go go-loop] :as async]
-            [protojure.grpc.client.api :as grpc]
+  (:require [<generic_namespace> :refer :all]
+            <requires:{dep|[<dep>]}; separator="\n">
+            <if(client)>
+            [clojure.core.async :as async]
             [protojure.grpc.client.utils :refer [send-unary-params invoke-unary]]
-            [<generic_namespace>]
             [promesa.core :as p]
-             <requires:{dep|[<dep>]}; separator="\n">
-            [io.pedestal.interceptor.helpers :refer [handler]]
-            [<generic_namespace> :refer :all]))
+            [protojure.grpc.client.api :as grpc]
+            <endif>))
 
 <if(rpcs.values && client)>
 <rpcs.values:{method_desc|<emit_rpc_client(method_desc, generic_namespace)>}; separator="\n">
@@ -279,7 +278,7 @@ emit_param_map(generic_namespace, rpcs) ::=
 emit_rpc_client(service, ns) ::=
 <<
 ;-----------------------------------------------------------------------------
-; <service.name> Service RPCs
+; GRPC Client Implementation
 ;-----------------------------------------------------------------------------
 
 <service.methods.values:{method_desc|<emit_rpc_client_method(method_desc, service, ns)>}; separator="\n">
