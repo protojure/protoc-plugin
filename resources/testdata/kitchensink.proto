@@ -29,6 +29,9 @@ message AllThings {
     // imported message
     .com.example.addressbook.Person person = 16;
     .com.example.nested.foobar.DependOnThis dependency = 17;
+
+    // snake-to-kebab test: this should appear as a kebab case attribute within clojure model
+    string snake_case = 18;
 }
 
 message SimpleString {
