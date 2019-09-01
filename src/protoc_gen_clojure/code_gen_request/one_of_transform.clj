@@ -1,6 +1,6 @@
 (ns protoc-gen-clojure.code-gen-request.one-of-transform)
 
-(declare adjust-oneof-field)
+(declare adjust-fields)
 
 ;;-------------------------------------------------------------------
 ;; Move oneof fields to a parent container named with the oneof name
@@ -82,19 +82,23 @@
 ;;     )
 ;;    :oneofdecl ["FirstOneof", "TheStrings"]}
 ;;-------------------------------------------------------------------
-(defn adjust-msg-for-oneof [msg]
-  (let [oneofdecl (:oneofdecl msg)]
-    (if (nil? oneofdecl)
-      msg
-      (update-in msg [:fields] (fn [fields] (reduce (fn [coll f]
-                                                      (adjust-oneof-field oneofdecl coll f)) [] fields))))))
+(defn adjust-msg [{:keys [oneofdecl] :as msg}]
+  (cond-> msg (not (empty? oneofdecl))
+          (update-in [:fields] (partial adjust-fields oneofdecl))))
+
+(defn valid? [oneofdecl {:keys [oneof-index] :as field}]
+  (contains? oneofdecl oneof-index))
+
+(defn get-index [oneofdecl {:keys [oneof-index] :as field}]
+  (when (valid? oneofdecl field)
+    oneof-index))
 
 ;;-------------------------------------------------------------------
 ;; Add oneof fields to the appropriate parent field
 ;;-------------------------------------------------------------------
-(defn adjust-oneof-field [oneofdecl coll f]
-  (let [oi (get f :oneof-index)
-        newf (first (filter #(if-let [oiother (get % :oneof-index)] (if (= oi oiother) %)) coll))
+(defn- adjust-field [oneofdecl coll f]
+  (let [oi (get-index oneofdecl f)
+        newf (first (filter #(when-let [oiother (get-index oneofdecl %)] (when (= oi oiother) %)) coll))
         inewf (.indexOf coll newf)]
     (cond
       ;;-- not a oneof field, just add it
@@ -105,8 +109,13 @@
                                 :fname name
                                 :oneof-index oi
                                 :type :type-oneof
-                                :label
-                                :label-optional
+                                :label :label-optional
                                 :ofields [f]}))
       ;;--update the parent with the passed oneof
       :default (update-in coll [inewf :ofields] (fn [of] (conj of f))))))
+
+(defn- adjust-fields [oneofdecl fields]
+  (reduce
+   (fn [coll f]
+     (adjust-field oneofdecl coll f))
+   [] fields))

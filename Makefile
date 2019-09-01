@@ -7,9 +7,10 @@ LEIN = $(shell which lein || echo ./lein)
 BINDIR ?= /usr/local/bin
 OUTPUT=target/$(NAME)
 
-COVERAGE_THRESHOLD = 86 
+COVERAGE_THRESHOLD = 83
 COVERAGE_EXCLUSION += "user"
 COVERAGE_EXCLUSION += "com.example.*"
+COVERAGE_EXCLUSION += "com.google.protobuf.*"
 
 SRCS += $(shell find src -type f)
 SRCS += $(shell find resources/generators -type f)
