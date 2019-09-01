@@ -9,7 +9,7 @@
             [protoc-gen-clojure.specs.msg :as msgdef]
             [protoc-gen-clojure.specs.rpc :as rpcdef]
             [protoc-gen-clojure.ast :as ast]
-            [protoc-gen-clojure.code-gen-request.one-of-transform :refer [adjust-msg-for-oneof]]
+            [protoc-gen-clojure.code-gen-request.one-of-transform :as oneof]
             [protoc-gen-clojure.util :as util]
             [camel-snake-kebab.core :refer :all]
             [clojure.spec.alpha :as s])
@@ -330,14 +330,14 @@
 ;; 26 [:email (.readStringRequireUtf8 is)]
 ;; 34 [:phones (partial cons (parse-embedded -parse-Person-PhoneNumber is))]
 ;;-------------------------------------------------------------------
-(defn- build-msg-field [protos {:keys [name number type type-name ismap oneof-index ofields] :as field}]
+(defn- build-msg-field [protos oneofdecl {:keys [name number type type-name ismap ofields] :as field}]
   (let [isnested (nested? field)
         ofs (->> ofields
                  (map (fn [f] (new-field {:tag (:number f)
                                           :name (:name f)
                                           :isnested (nested? f)
                                           :ismap (:ismap f)
-                                          :oindex (:oneof-index f)
+                                          :oindex (oneof/get-index oneofdecl f)
                                           :ofields nil
                                           :type (decode-field-type protos f)})))
                  (into {}))
@@ -346,7 +346,7 @@
                 :isnested isnested
                 :name name
                 :ismap ismap
-                :oindex oneof-index
+                :oindex (oneof/get-index oneofdecl field)
                 :ofields ofs
                 :type type})))
 
@@ -369,22 +369,23 @@
 ;;           :type-name ".tutorial.Person.PhoneType",
 ;;           :json-name "type"}]}
 ;;-------------------------------------------------------------------
-(defn- build-msg [protos {:keys [name fields] :as msg}]
-  (let [statements (->> fields
+(defn- build-msg [protos {:keys [name fields oneofdecl] :as msg}]
+  (let [builder (partial build-msg-field protos oneofdecl)
+        statements (->> fields
                         ;;-- don't include the original oneof fields which are now in a container as well
-                        (filter (fn [f] (or (nil? (:oneof-index f)) (not (nil? (:ofields f))))))
-                        (map (partial build-msg-field protos))
+                        (filter (fn [f] (or (not (oneof/valid? oneofdecl f)) (some? (:ofields f)))))
+                        (map builder)
                         (into {}))
         ofields (->> fields
                      ;;-- collect only parent oneof container fields
-                     (filter (fn [f] (not (nil? (:ofields f)))))
-                     (map (partial build-msg-field protos))
+                     (filter (fn [f] (some? (:ofields f))))
+                     (map builder)
                      (into {}))
         ismap (:ismap msg)
         nested? (fn [x] (and (= (:type x) :type-message) (not (:ismap x))))
         nested (->> fields
                     (filter nested?)
-                    (map (partial build-msg-field protos))
+                    (map builder)
                     (into {}))]
     (new-descriptor name statements nested ismap ofields)))
 
@@ -397,7 +398,7 @@
 ;; code-gen-request.one-of-transform for more detail
 ;;-------------------------------------------------------------------
 (defn- build-msgs [protos msgs]
-  (builder (comp (partial build-msg protos) adjust-msg-for-oneof) msgs))
+  (builder (comp (partial build-msg protos) oneof/adjust-msg) msgs))
 
 ;;-------------------------------------------------------------------
 ;; getmaptypes collects all map types

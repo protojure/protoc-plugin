@@ -3,23 +3,26 @@
 ;; SPDX-License-Identifier: Apache-2.0
 
 (ns protoc-gen-clojure.main
-  (:import [com.google.protobuf.compiler
-            PluginProtos$CodeGeneratorRequest
-            PluginProtos$CodeGeneratorResponse])
-  (:require [flatland.protobuf.core :as fl]
-            [clojure.java.io :as io]
+  (:require [protojure.protobuf :refer [->pb]]
+            [com.google.protobuf :as protobuf]
+            [com.google.protobuf.compiler :as compiler]
             [protoc-gen-clojure.core :as core])
   (:gen-class))
 
-(def CodeGeneratorRequest (fl/protodef PluginProtos$CodeGeneratorRequest))
-(def CodeGeneratorResponse (fl/protodef PluginProtos$CodeGeneratorResponse))
+;; We have to manually remove the default ':oneof-index 0" from the generated code.
+;; This function helps ensure we do not forget
+(defn- validate-protobuf []
+  (when (contains? protobuf/FieldDescriptorProto-defaults :oneof-index)
+    (throw (ex-info "oneof-index must not have a default specified" {}))))
+
+(validate-protobuf)
 
 (defn decode-request [in]
-  (fl/protobuf-load-stream CodeGeneratorRequest in))
+  (compiler/pb->CodeGeneratorRequest in))
 
 (defn encode-response [out params]
-  (let [response (fl/protobuf CodeGeneratorResponse params)]
-    (io/copy (fl/protobuf-dump response) out)))
+  (-> (compiler/new-CodeGeneratorResponse params)
+      (->pb out)))
 
 (defn execute
   "Execute our code generator wrapped in generic request/response serdes"
@@ -36,10 +39,7 @@
   "plugin entrypoint: request/response protocol runs over stdin/out.
 
   protoc will send us a protobuf encoded CodeGeneratorRequest over stdin
-  and expect a CodeGeneratorResponse on stdout.  We make use of our
-  (java-interop based) flatland.protobuf library to manage the serdes
-  function for us to bootstrap native clojure protobuf support via this
-  tool."
+  and expect a CodeGeneratorResponse on stdout."
   [& args]
   (when-let [ret (execute (.. System in) (.. System out))]
     (.println System/err (second ret))

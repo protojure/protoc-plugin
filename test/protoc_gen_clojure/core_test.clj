@@ -36,9 +36,9 @@
         (spit h content)))
 
     ;; JIT-require our 'com.example' namespaces now that they are available
-    (require '[com.example.addressbook :as addressbook]
-             '[com.example.kitchensink :as example]
-             '[com.example.kitchensink.Greeter :as example-server] :reload-all)))
+    (require '[com.example.addressbook :as addressbook] :reload
+             '[com.example.kitchensink :as example] :reload
+             '[com.example.kitchensink.Greeter :as example-server] :reload)))
 
 (generate-and-load-sample)
 
@@ -47,12 +47,6 @@
     (let [in (io/input-stream (io/resource "testdata/protoc.request"))
           out (ByteArrayOutputStream.)]
       (is (nil? (main/execute in out))))))
-
-(deftest bad-io-test
-  (testing "Drive a known bad request through plugin IO and ensure we get a non-zero response"
-    (let [in (io/input-stream (io/resource "testdata/bad.request"))
-          out (ByteArrayOutputStream.)]
-      (is (not (nil? (main/execute in out)))))))
 
 (defn- pbverify
   "End to end serdes testing for a specific message"
