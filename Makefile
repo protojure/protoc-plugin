@@ -22,7 +22,6 @@ testdata: resources/testdata/protoc.request
 
 scan:
 	$(LEIN) cljfmt check
-	$(LEIN) eastwood '{:debug [:none] :config-files [".eastwood-overrides"]}'
 
 .PHONY: test
 test:

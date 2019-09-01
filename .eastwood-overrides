@@ -1,3 +1,0 @@
-(disable-warning
- {:linter :unused-ret-vals
-  :reason "just suppress this foobar"})

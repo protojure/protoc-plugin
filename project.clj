@@ -9,7 +9,6 @@
   :jvm-opts ["-server"]
   :java-source-paths ["src"]
   :plugins [[lein-bin "0.3.5"]
-            [jonase/eastwood "0.2.6"]
             [lein-cloverage "1.0.11"]
             [lein-cljfmt "0.5.7"]]
   :dependencies [[org.clojure/clojure "1.10.0"]
