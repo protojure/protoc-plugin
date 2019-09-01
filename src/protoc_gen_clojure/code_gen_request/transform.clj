@@ -200,6 +200,22 @@
   (vector tag (->EnumDescriptor tag label)))
 
 ;;-------------------------------------------------------------------
+;; idiomatic protobuf uses snake-case, clojure uses kebab
+;;-------------------------------------------------------------------
+(defn- clojurify-name [name]
+  (string/replace name #"_" "-"))
+
+;;-------------------------------------------------------------------
+;; for the input "TYPE_FOO" returns ":type-foo", suitable for
+;;  enum label fields
+;;-------------------------------------------------------------------
+(defn- enum2keyword [name]
+  (->> name
+       (clojurify-name)
+       (string/lower-case)
+       (str ":")))
+
+;;-------------------------------------------------------------------
 ;; Build an enumeration structure
 ;;-------------------------------------------------------------------
 ;;
@@ -216,7 +232,7 @@
 (defn- build-enum [{:keys [name value] :as enum}]
   (let [statements (->> value
                         (map (fn [{:keys [name number]}]
-                               (new-enum-descriptor {:tag (str number) :label (str ":" name)})))
+                               (new-enum-descriptor {:tag (str number) :label (enum2keyword name)})))
                         (into {}))]
     (new-descriptor name statements nil false nil)))
 
@@ -302,8 +318,9 @@
 ;; Create a new instance of ->Field
 ;;-------------------------------------------------------------------
 (defn- new-field [{:keys [tag name isnested ismap oindex ofields] {:keys [embedded repeated packable type ns default spec]} :type}]
-  (let [t (->ValueType embedded repeated packable ns type default spec)]
-    (vector name (->Field tag name t isnested ismap oindex ofields))))
+  (let [cljname (clojurify-name name)
+        t (->ValueType embedded repeated packable ns type default spec)]
+    (vector cljname (->Field tag cljname t isnested ismap oindex ofields))))
 
 ;;-------------------------------------------------------------------
 ;; Builds a statement for a msg::field

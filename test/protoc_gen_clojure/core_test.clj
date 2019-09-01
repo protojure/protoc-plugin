@@ -73,7 +73,7 @@
                :One {:ss {:s "and ss"}}
                :num 42
                ;--oneof with an enum
-               :AndAnotherOne {:aae :E1}
+               :AndAnotherOne {:aae :e1}
                :seconds {:s "secondstr"}
                :eo {:s "eos"
                     ;-- oneof with a complex nested structure with another oneof
@@ -83,8 +83,8 @@
                                    :mComplex {"k1" {:s "v1"} "k2" {:s "v2"}}
                                    :sSimple {:s "simple"}
                              ;--note the oneof within oneof
-                                   :oe :E2}}}
-               :e :E1
+                                   :oe :e2}}}
+               :e :e1
                ;--oneof with bytes
                :FinalOne {:fb (byte-array (mapv byte "Clojure!"))}})))
 
@@ -98,7 +98,7 @@
                :num 42
                :seconds {:s "secondstr"}
                :eo {:s "eos"}
-               :e :E1})))
+               :e :e1})))
 
 (deftest e2e-test
   (testing "End-to-end testing for AllThings type"
@@ -107,7 +107,8 @@
               {:person {:name "Test User"
                         :id 42
                         :email "tester@acme.com"
-                        :phones [{:type :HOME :number "(123) 456-7890"}]}})))
+                        :phones [{:type :home :number "(123) 456-7890"}]}
+               :snake-case "Snake to Kebab!"})))
 
 (deftest default-enum-test
   (testing "Check to ensure that default enums are set"
@@ -115,7 +116,7 @@
                   ->pb
                   addressbook/pb->Person)
           type (-> msg :phones first :type)]
-      (is (= type :MOBILE)))))
+      (is (= type :mobile)))))
 
 (deftest allthingsmap-test
   (testing "Test all things map"
@@ -219,7 +220,7 @@
     (let [msg (-> (addressbook/new-Person {:name "Test User" :phones [{:number "(123) 456-7890" :type 2}]})
                   ->pb
                   addressbook/pb->Person)]
-      (is (-> msg :phones first :type (= :WORK))))))
+      (is (-> msg :phones first :type (= :work))))))
 
 (deftest int-passthrough-test
   (testing "A future evolution of a schema may include enumerations that we are not aware of.  Allow them to pass through"
