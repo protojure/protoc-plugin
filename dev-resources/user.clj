@@ -3,7 +3,7 @@
 ;; SPDX-License-Identifier: Apache-2.0
 
 (ns user
-  (:require [protoc-gen-clojure.main :as main]
+  (:require [protojure.plugin.main :as main]
             [clojure.tools.namespace.repl :refer [refresh]]
             [clojure.pprint :refer [pprint]]
             [clojure.java.io :as io]))

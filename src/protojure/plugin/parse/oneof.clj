@@ -1,4 +1,4 @@
-(ns protoc-gen-clojure.code-gen-request.one-of-transform)
+(ns protojure.plugin.parse.oneof)
 
 (declare adjust-fields)
 

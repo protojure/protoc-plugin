@@ -2,7 +2,7 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.ast)
+(ns protojure.plugin.ast)
 
 (defn- key-by [pred proto-file]
   (->> proto-file

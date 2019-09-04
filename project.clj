@@ -18,7 +18,7 @@
                  [slingshot "0.12.2"]
                  [camel-snake-kebab "0.4.0"]
                  [org.clojure/math.combinatorics "0.1.6"]]
-  :main ^:skip-aot protoc-gen-clojure.main
+  :main ^:skip-aot protojure.plugin.main
   :bin {:name "protoc-gen-clojure"
         :bin-path "target"
         :bootclasspath false}
