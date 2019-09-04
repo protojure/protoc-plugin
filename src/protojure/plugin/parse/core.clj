@@ -6,13 +6,10 @@
   "Functions that transform the protoc CodeGeneratorRequest to STG template format"
   (:require [clojure.pprint :refer :all]
             [clojure.string :as string]
-            [protojure.plugin.specs.msg :as msgdef]
-            [protojure.plugin.specs.rpc :as rpcdef]
             [protojure.plugin.ast :as ast]
             [protojure.plugin.parse.oneof :as oneof]
             [protojure.plugin.util :as util]
-            [camel-snake-kebab.core :refer :all]
-            [clojure.spec.alpha :as s])
+            [camel-snake-kebab.core :refer :all])
   (:import (java.util ArrayList)
            (org.stringtemplate.v4 STGroupFile)))
 
