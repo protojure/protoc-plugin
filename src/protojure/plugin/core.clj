@@ -2,10 +2,10 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.core
-  (:require [protoc-gen-clojure.code-gen-request.transform :refer [validity-checks generate-impl]]
+(ns protojure.plugin.core
+  (:require [protojure.plugin.parse.core :refer [validity-checks generate-impl]]
             [clojure.math.combinatorics :refer [cartesian-product]]
-            [protoc-gen-clojure.ast :as ast]))
+            [protojure.plugin.ast :as ast]))
 
 (declare update-dependency-names)
 ;;-------------------------------------------------------------------

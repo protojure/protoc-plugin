@@ -2,7 +2,7 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.core-test
+(ns protojure.plugin.core-test
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [clojure.data :as data]
@@ -10,9 +10,9 @@
             [clojure.tools.namespace :as namespace]
             [me.raynes.fs :as fs]
             [protojure.protobuf :refer [->pb]]
-            [protoc-gen-clojure.main :as main]
-            [protoc-gen-clojure.core :refer :all]
-            [protoc-gen-clojure.code-gen-request.transform :refer :all]
+            [protojure.plugin.main :as main]
+            [protojure.plugin.core :refer :all]
+            [protojure.plugin.parse.core :refer :all]
             [clojure.spec.test.alpha :as stest])
   (:import [java.io ByteArrayOutputStream]))
 

@@ -2,7 +2,7 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.specs.rpc
+(ns protojure.plugin.specs.rpc
   "clojure.spec definitions for our AST rpc structure"
   (:require [clojure.spec.alpha :as s]))
 

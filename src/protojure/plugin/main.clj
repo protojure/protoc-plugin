@@ -2,11 +2,11 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.main
+(ns protojure.plugin.main
   (:require [protojure.protobuf :refer [->pb]]
             [com.google.protobuf :as protobuf]
             [com.google.protobuf.compiler :as compiler]
-            [protoc-gen-clojure.core :as core])
+            [protojure.plugin.core :as core])
   (:gen-class))
 
 ;; We have to manually remove the default ':oneof-index 0" from the generated code.

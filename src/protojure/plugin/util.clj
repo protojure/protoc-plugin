@@ -2,7 +2,7 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.util
+(ns protojure.plugin.util
   (:require [slingshot.slingshot :as slingshot])
   (:gen-class))
 

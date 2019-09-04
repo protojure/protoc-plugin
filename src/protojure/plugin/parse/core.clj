@@ -2,15 +2,15 @@
 ;;
 ;; SPDX-License-Identifier: Apache-2.0
 
-(ns protoc-gen-clojure.code-gen-request.transform
+(ns protojure.plugin.parse.core
   "Functions that transform the protoc CodeGeneratorRequest to STG template format"
   (:require [clojure.pprint :refer :all]
             [clojure.string :as string]
-            [protoc-gen-clojure.specs.msg :as msgdef]
-            [protoc-gen-clojure.specs.rpc :as rpcdef]
-            [protoc-gen-clojure.ast :as ast]
-            [protoc-gen-clojure.code-gen-request.one-of-transform :as oneof]
-            [protoc-gen-clojure.util :as util]
+            [protojure.plugin.specs.msg :as msgdef]
+            [protojure.plugin.specs.rpc :as rpcdef]
+            [protojure.plugin.ast :as ast]
+            [protojure.plugin.parse.oneof :as oneof]
+            [protojure.plugin.util :as util]
             [camel-snake-kebab.core :refer :all]
             [clojure.spec.alpha :as s])
   (:import (java.util ArrayList)
@@ -34,7 +34,7 @@
 ;;
 ;; N.B. The structure of the protoc CodeGeneratorRequest above can
 ;; be interogatted in its raw form by capturing the output of
-;; `(protoc-gen-clojure.main/decode-request
+;; `(protojure.plugin.main/decode-request
 ;;    (io/input-stream <CodeGeneratorRequest bytes>))`
 ;;
 ;;-------------------------------------------------------------------
@@ -393,9 +393,8 @@
 ;; build-msgs
 ;; ------------------------------------------------------------------
 ;; Note that we compose build-msg, followed by a second pass of
-;; adjust-msg-for-oneof due to the layered nature of one-ofs. See the
-;; comments for adjust-msg-for-oneof and adjust-msg-for-oneof-field in
-;; code-gen-request.one-of-transform for more detail
+;; oneof/adjust-msg due to the layered nature of one-ofs. See the
+;; comments in the protojure.plugin.parse.oneof namespace for more details
 ;;-------------------------------------------------------------------
 (defn- build-msgs [protos msgs]
   (builder (comp (partial build-msg protos) oneof/adjust-msg) msgs))
