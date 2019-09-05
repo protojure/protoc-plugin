@@ -18,6 +18,11 @@
 
 (defn get-fqpackage [ast]
   (or
+    ;; TODO .proto options are controlled fields that must be declared in descriptor.proto
+    ;; See https://developers.google.com/protocol-buffers/docs/proto#customoptions
+    ;; The below will not work, and the appropriate approach here is probably to PR to upstream to include the
+    ;; top level clojure-namespace option in descriptor.proto
+    ;; (-> ast :options :clojure-namespace)
    (-> ast :options :java-package)
    (:package ast)))
 

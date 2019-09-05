@@ -165,6 +165,9 @@
   (-> (generate-impl-ns protos file impl-str)
       package-to-filename))
 
+(defn- xform-pkg-to-opts-overrides [requires protos]
+  (map (fn [req] (some (fn [e] (when (= req (:package e)) (or (:clojure-namespace (:options e)) (:java-package (:options e)) (:package e)))) (:inc-fmt protos))) requires))
+
 ;;-------------------------------------------------------------------
 ;; Initialize a new Descriptor structure
 ;;-------------------------------------------------------------------
@@ -630,7 +633,7 @@
         pre-map-msgs (generate-msgs protos src)
         msgs (update-fields-with-map-attr pre-map-msgs)
         services (if modded-rpcs modded-rpcs (build-services protos src)) ;; built services
-        requires (generate-requires (:dependency (some (fn [e] (when (= (:name e) file) e)) (:inc-fmt protos))))]
+        requires (generate-requires (xform-pkg-to-opts-overrides (:dependency (some (fn [e] (when (= (:name e) file) e)) (:inc-fmt protos))) protos))]
     (render-template impl-str
                      [["generic_namespace" gns]
                       ["namespace" ns]

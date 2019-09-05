@@ -1,6 +1,8 @@
 syntax = "proto3";
 package com.example.nested.foobar;
 
+option java_package = "com.example.packageOption";
+
 message DependOnThis {
 	 string dependency = 1;
 	}
