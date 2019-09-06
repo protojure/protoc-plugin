@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 NAME=protoc-gen-clojure
-LEIN = $(shell which lein || echo ./lein)
+LEIN = $(shell which lein || echo $(CURDIR)/lein)
 BINDIR ?= /usr/local/bin
 OUTPUT=target/$(NAME)
 
@@ -17,7 +17,7 @@ SRCS += $(shell find resources/generators -type f)
 
 PROTOS += $(wildcard resources/testdata/*.proto)
 
-all: scan test bin
+all: scan test test-example bin
 
 testdata: resources/testdata/protoc.request
 
@@ -25,6 +25,10 @@ scan:
 	$(LEIN) cljfmt check
 
 .PHONY: test
+
+test-example:
+	cd examples/hello && $(LEIN) test
+
 test:
 	$(LEIN) cloverage --lcov --fail-threshold $(COVERAGE_THRESHOLD) $(patsubst %,-e %, $(COVERAGE_EXCLUSION))
 

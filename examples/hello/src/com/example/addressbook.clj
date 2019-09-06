@@ -40,9 +40,9 @@
 ; Person-PhoneType
 ;-----------------------------------------------------------------------------
 (def Person-PhoneType-val2label {
-  0 :MOBILE
-  1 :HOME
-  2 :WORK})
+  0 :mobile
+  1 :home
+  2 :work})
 
 (def Person-PhoneType-label2val (set/map-invert Person-PhoneType-val2label))
 

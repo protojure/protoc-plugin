@@ -4,14 +4,28 @@
 ;;; GRPC com.example.addressbook.Greeter Service Implementation
 ;;;----------------------------------------------------------------------------------
 (ns com.example.addressbook.Greeter
-  (:require [protojure.protobuf.serdes :refer :all]
-            [clojure.core.async :refer [<!! >!! <! >! go go-loop] :as async]
-            [protojure.grpc.client.api :as grpc]
+  (:require [com.example.addressbook :refer :all]
+            [clojure.core.async :as async]
             [protojure.grpc.client.utils :refer [send-unary-params invoke-unary]]
-            [com.example.addressbook]
             [promesa.core :as p]
-            [io.pedestal.interceptor.helpers :refer [handler]]
-            [com.example.addressbook :refer :all]))
+            [protojure.grpc.client.api :as grpc]
+))
+
+;-----------------------------------------------------------------------------
+; GRPC Client Implementation
+;-----------------------------------------------------------------------------
+
+(defn call-Hello
+  [client params]
+  (let [input (async/chan 1)
+        output (async/chan 1)
+        desc {:service "com.example.addressbook.Greeter"
+              :method  "Hello"
+              :input   {:f com.example.addressbook/new-Person :ch input}
+              :output  {:f com.example.addressbook/pb->HelloResponse :ch output}}]
+    (-> (send-unary-params input params)
+        (p/then (fn [_] (invoke-unary client desc output))))))
+
 
 ;;----------------------------------------------------------------------------------
 ;;----------------------------------------------------------------------------------
