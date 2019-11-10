@@ -153,7 +153,7 @@
 ;;-------------------------------------------------------------------
 (defn- package-to-filename [pkg]
   (-> (string/replace pkg #"\.|\_" "/")
-      (str ".clj")))
+      (str ".cljc")))
 
 ;;-------------------------------------------------------------------
 ;; Generate an output filename for a given input .proto file

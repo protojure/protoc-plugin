@@ -4,13 +4,14 @@
 ;;; Message Implementation of package com.google.protobuf.compiler
 ;;;----------------------------------------------------------------------------------
 (ns com.google.protobuf.compiler
-  (:require [protojure.protobuf :as pb]
-            [protojure.protobuf.serdes :refer :all]
+  (:require [protojure.protobuf.protocol :as pb]
+            [protojure.protobuf.serdes.core :refer :all]
+            [protojure.protobuf.serdes.complex :refer :all]
+            [protojure.protobuf.serdes.utils :refer [tag-map]]
+            [protojure.protobuf.serdes.stream :as stream]
             [com.google.protobuf :as google.protobuf]
             [clojure.set :as set]
-            [clojure.spec.alpha :as s])
-  (:import (com.google.protobuf
-            CodedInputStream)))
+            [clojure.spec.alpha :as s]))
 
 ;;----------------------------------------------------------------------------------
 ;;----------------------------------------------------------------------------------
@@ -47,13 +48,7 @@
     (write-Int32 1  {:optimize true} (:major this) os)
     (write-Int32 2  {:optimize true} (:minor this) os)
     (write-Int32 3  {:optimize true} (:patch this) os)
-    (write-String 4  {:optimize true} (:suffix this) os))
-
-  (length [this]
-    (reduce + [(size-Int32 1  {:optimize true} (:major this))
-               (size-Int32 2  {:optimize true} (:minor this))
-               (size-Int32 3  {:optimize true} (:patch this))
-               (size-String 4  {:optimize true} (:suffix this))])))
+    (write-String 4  {:optimize true} (:suffix this) os)))
 
 (s/def :com.google.protobuf.compiler.messages.Version/major int?)
 (s/def :com.google.protobuf.compiler.messages.Version/minor int?)
@@ -94,9 +89,7 @@
 (defn pb->Version
   "Protobuf to Version"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->Version))
+  (cis->Version (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; CodeGeneratorRequest
@@ -108,13 +101,7 @@
     (write-repeated write-String 1 (:file-to-generate this) os)
     (write-String 2  {:optimize true} (:parameter this) os)
     (write-repeated write-embedded 15 (:proto-file this) os)
-    (write-embedded 3 (:compiler-version this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-String 1 (:file-to-generate this))
-               (size-String 2  {:optimize true} (:parameter this))
-               (size-repeated size-embedded 15 (:proto-file this))
-               (size-embedded 3 (:compiler-version this))])))
+    (write-embedded 3 (:compiler-version this) os)))
 
 (s/def :com.google.protobuf.compiler.messages.CodeGeneratorRequest/file-to-generate (s/every string?))
 (s/def :com.google.protobuf.compiler.messages.CodeGeneratorRequest/parameter string?)
@@ -156,9 +143,7 @@
 (defn pb->CodeGeneratorRequest
   "Protobuf to CodeGeneratorRequest"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->CodeGeneratorRequest))
+  (cis->CodeGeneratorRequest (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; CodeGeneratorResponse
@@ -168,11 +153,7 @@
 
   (serialize [this os]
     (write-String 1  {:optimize true} (:error this) os)
-    (write-repeated write-embedded 15 (:file this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:error this))
-               (size-repeated size-embedded 15 (:file this))])))
+    (write-repeated write-embedded 15 (:file this) os)))
 
 (s/def :com.google.protobuf.compiler.messages.CodeGeneratorResponse/error string?)
 
@@ -210,9 +191,7 @@
 (defn pb->CodeGeneratorResponse
   "Protobuf to CodeGeneratorResponse"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->CodeGeneratorResponse))
+  (cis->CodeGeneratorResponse (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; CodeGeneratorResponse-File
@@ -223,12 +202,7 @@
   (serialize [this os]
     (write-String 1  {:optimize true} (:name this) os)
     (write-String 2  {:optimize true} (:insertion-point this) os)
-    (write-String 15  {:optimize true} (:content this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-               (size-String 2  {:optimize true} (:insertion-point this))
-               (size-String 15  {:optimize true} (:content this))])))
+    (write-String 15  {:optimize true} (:content this) os)))
 
 (s/def :com.google.protobuf.compiler.messages.CodeGeneratorResponse-File/name string?)
 (s/def :com.google.protobuf.compiler.messages.CodeGeneratorResponse-File/insertion-point string?)
@@ -267,7 +241,5 @@
 (defn pb->CodeGeneratorResponse-File
   "Protobuf to CodeGeneratorResponse-File"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->CodeGeneratorResponse-File))
+  (cis->CodeGeneratorResponse-File (stream/new-cis input)))
 

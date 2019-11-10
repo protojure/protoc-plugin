@@ -4,12 +4,13 @@
 ;;; Message Implementation of package com.example.addressbook
 ;;;----------------------------------------------------------------------------------
 (ns com.example.addressbook
-  (:require [protojure.protobuf :as pb]
-            [protojure.protobuf.serdes :refer :all]
+  (:require [protojure.protobuf.protocol :as pb]
+            [protojure.protobuf.serdes.core :refer :all]
+            [protojure.protobuf.serdes.complex :refer :all]
+            [protojure.protobuf.serdes.utils :refer [tag-map]]
+            [protojure.protobuf.serdes.stream :as stream]
             [clojure.set :as set]
-            [clojure.spec.alpha :as s])
-  (:import (com.google.protobuf
-            CodedInputStream)))
+            [clojure.spec.alpha :as s]))
 
 ;;----------------------------------------------------------------------------------
 ;;----------------------------------------------------------------------------------
@@ -47,15 +48,12 @@
 (def Person-PhoneType-label2val (set/map-invert Person-PhoneType-val2label))
 
 (defn cis->Person-PhoneType [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get Person-PhoneType-val2label val val)))
 
 (defn- get-Person-PhoneType [value]
   {:pre [(or (int? value) (contains? Person-PhoneType-label2val value))]}
   (get Person-PhoneType-label2val value value))
-
-(defn size-Person-PhoneType [tag options value]
-  (size-Enum tag options (get-Person-PhoneType value)))
 
 (defn write-Person-PhoneType [tag options value os]
   (write-Enum tag options (get-Person-PhoneType value) os))
@@ -78,13 +76,7 @@
     (write-String 1  {:optimize true} (:name this) os)
     (write-Int32 2  {:optimize true} (:id this) os)
     (write-String 3  {:optimize true} (:email this) os)
-    (write-repeated write-embedded 4 (:phones this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-(size-Int32 2  {:optimize true} (:id this))
-(size-String 3  {:optimize true} (:email this))
-(size-repeated size-embedded 4 (:phones this))])))
+    (write-repeated write-embedded 4 (:phones this) os)))
 
 (s/def :com.example.addressbook.messages.Person/name string?)
 (s/def :com.example.addressbook.messages.Person/id int?)
@@ -126,9 +118,7 @@
 (defn pb->Person
   "Protobuf to Person"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->Person))
+  (cis->Person (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; Person-PhoneNumber
@@ -138,11 +128,7 @@
 
   (serialize [this os]
     (write-String 1  {:optimize true} (:number this) os)
-    (write-Person-PhoneType 2  {:optimize true} (:type this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:number this))
-(size-Person-PhoneType 2  {:optimize true} (:type this))])))
+    (write-Person-PhoneType 2  {:optimize true} (:type this) os)))
 
 (s/def :com.example.addressbook.messages.Person-PhoneNumber/number string?)
 (s/def :com.example.addressbook.messages.Person-PhoneNumber/type (s/or :keyword keyword? :int int?))
@@ -179,9 +165,7 @@
 (defn pb->Person-PhoneNumber
   "Protobuf to Person-PhoneNumber"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->Person-PhoneNumber))
+  (cis->Person-PhoneNumber (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; AddressBook
@@ -190,10 +174,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-repeated write-embedded 1 (:people this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 1 (:people this))])))
+    (write-repeated write-embedded 1 (:people this) os)))
 
 (s/def ::AddressBook-spec (s/keys :opt-un []))
 (def AddressBook-defaults {:people [] })
@@ -228,9 +209,7 @@
 (defn pb->AddressBook
   "Protobuf to AddressBook"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->AddressBook))
+  (cis->AddressBook (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; HelloResponse
@@ -239,10 +218,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-String 1  {:optimize true} (:message this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:message this))])))
+    (write-String 1  {:optimize true} (:message this) os)))
 
 (s/def :com.example.addressbook.messages.HelloResponse/message string?)
 (s/def ::HelloResponse-spec (s/keys :opt-un [:com.example.addressbook.messages.HelloResponse/message ]))
@@ -277,7 +253,5 @@
 (defn pb->HelloResponse
   "Protobuf to HelloResponse"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->HelloResponse))
+  (cis->HelloResponse (stream/new-cis input)))
 
