@@ -12,7 +12,7 @@
             [lein-cloverage "1.0.11" :exclusions [org.clojure/clojure]]
             [lein-cljfmt "0.5.7" :exclusions [org.clojure/clojure]]]
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [protojure "1.0.1"]
+                 [protojure "1.1.0"]
                  [com.google.protobuf/protobuf-java "3.11.1"]
                  [org.antlr/ST4 "4.2"]
                  [slingshot "0.12.2"]

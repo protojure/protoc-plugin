@@ -4,12 +4,13 @@
 ;;; Message Implementation of package com.google.protobuf
 ;;;----------------------------------------------------------------------------------
 (ns com.google.protobuf
-  (:require [protojure.protobuf :as pb]
-            [protojure.protobuf.serdes :refer :all]
+  (:require [protojure.protobuf.protocol :as pb]
+            [protojure.protobuf.serdes.core :refer :all]
+            [protojure.protobuf.serdes.complex :refer :all]
+            [protojure.protobuf.serdes.utils :refer [tag-map]]
+            [protojure.protobuf.serdes.stream :as stream]
             [clojure.set :as set]
-            [clojure.spec.alpha :as s])
-  (:import (com.google.protobuf
-            CodedInputStream)))
+            [clojure.spec.alpha :as s]))
 
 ;;----------------------------------------------------------------------------------
 ;;----------------------------------------------------------------------------------
@@ -130,15 +131,12 @@
 (def FieldDescriptorProto-Type-label2val (set/map-invert FieldDescriptorProto-Type-val2label))
 
 (defn cis->FieldDescriptorProto-Type [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get FieldDescriptorProto-Type-val2label val val)))
 
 (defn- get-FieldDescriptorProto-Type [value]
   {:pre [(or (int? value) (contains? FieldDescriptorProto-Type-label2val value))]}
   (get FieldDescriptorProto-Type-label2val value value))
-
-(defn size-FieldDescriptorProto-Type [tag options value]
-  (size-Enum tag options (get-FieldDescriptorProto-Type value)))
 
 (defn write-FieldDescriptorProto-Type [tag options value os]
   (write-Enum tag options (get-FieldDescriptorProto-Type value) os))
@@ -153,15 +151,12 @@
 (def FieldDescriptorProto-Label-label2val (set/map-invert FieldDescriptorProto-Label-val2label))
 
 (defn cis->FieldDescriptorProto-Label [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get FieldDescriptorProto-Label-val2label val val)))
 
 (defn- get-FieldDescriptorProto-Label [value]
   {:pre [(or (int? value) (contains? FieldDescriptorProto-Label-label2val value))]}
   (get FieldDescriptorProto-Label-label2val value value))
-
-(defn size-FieldDescriptorProto-Label [tag options value]
-  (size-Enum tag options (get-FieldDescriptorProto-Label value)))
 
 (defn write-FieldDescriptorProto-Label [tag options value os]
   (write-Enum tag options (get-FieldDescriptorProto-Label value) os))
@@ -176,15 +171,12 @@
 (def FileOptions-OptimizeMode-label2val (set/map-invert FileOptions-OptimizeMode-val2label))
 
 (defn cis->FileOptions-OptimizeMode [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get FileOptions-OptimizeMode-val2label val val)))
 
 (defn- get-FileOptions-OptimizeMode [value]
   {:pre [(or (int? value) (contains? FileOptions-OptimizeMode-label2val value))]}
   (get FileOptions-OptimizeMode-label2val value value))
-
-(defn size-FileOptions-OptimizeMode [tag options value]
-  (size-Enum tag options (get-FileOptions-OptimizeMode value)))
 
 (defn write-FileOptions-OptimizeMode [tag options value os]
   (write-Enum tag options (get-FileOptions-OptimizeMode value) os))
@@ -199,15 +191,12 @@
 (def FieldOptions-CType-label2val (set/map-invert FieldOptions-CType-val2label))
 
 (defn cis->FieldOptions-CType [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get FieldOptions-CType-val2label val val)))
 
 (defn- get-FieldOptions-CType [value]
   {:pre [(or (int? value) (contains? FieldOptions-CType-label2val value))]}
   (get FieldOptions-CType-label2val value value))
-
-(defn size-FieldOptions-CType [tag options value]
-  (size-Enum tag options (get-FieldOptions-CType value)))
 
 (defn write-FieldOptions-CType [tag options value os]
   (write-Enum tag options (get-FieldOptions-CType value) os))
@@ -222,15 +211,12 @@
 (def FieldOptions-JSType-label2val (set/map-invert FieldOptions-JSType-val2label))
 
 (defn cis->FieldOptions-JSType [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get FieldOptions-JSType-val2label val val)))
 
 (defn- get-FieldOptions-JSType [value]
   {:pre [(or (int? value) (contains? FieldOptions-JSType-label2val value))]}
   (get FieldOptions-JSType-label2val value value))
-
-(defn size-FieldOptions-JSType [tag options value]
-  (size-Enum tag options (get-FieldOptions-JSType value)))
 
 (defn write-FieldOptions-JSType [tag options value os]
   (write-Enum tag options (get-FieldOptions-JSType value) os))
@@ -245,15 +231,12 @@
 (def MethodOptions-IdempotencyLevel-label2val (set/map-invert MethodOptions-IdempotencyLevel-val2label))
 
 (defn cis->MethodOptions-IdempotencyLevel [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get MethodOptions-IdempotencyLevel-val2label val val)))
 
 (defn- get-MethodOptions-IdempotencyLevel [value]
   {:pre [(or (int? value) (contains? MethodOptions-IdempotencyLevel-label2val value))]}
   (get MethodOptions-IdempotencyLevel-label2val value value))
-
-(defn size-MethodOptions-IdempotencyLevel [tag options value]
-  (size-Enum tag options (get-MethodOptions-IdempotencyLevel value)))
 
 (defn write-MethodOptions-IdempotencyLevel [tag options value os]
   (write-Enum tag options (get-MethodOptions-IdempotencyLevel value) os))
@@ -273,12 +256,7 @@
   (serialize [this os]
     (write-String 1  {:optimize true} (:name this) os)
     (write-repeated write-embedded 2 (:method this) os)
-    (write-embedded 3 (:options this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-               (size-repeated size-embedded 2 (:method this))
-               (size-embedded 3 (:options this))])))
+    (write-embedded 3 (:options this) os)))
 
 (s/def :com.google.protobuf.messages.ServiceDescriptorProto/name string?)
 
@@ -318,9 +296,7 @@
 (defn pb->ServiceDescriptorProto
   "Protobuf to ServiceDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->ServiceDescriptorProto))
+  (cis->ServiceDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; DescriptorProto-ExtensionRange
@@ -331,12 +307,7 @@
   (serialize [this os]
     (write-Int32 1  {:optimize true} (:start this) os)
     (write-Int32 2  {:optimize true} (:end this) os)
-    (write-embedded 3 (:options this) os))
-
-  (length [this]
-    (reduce + [(size-Int32 1  {:optimize true} (:start this))
-               (size-Int32 2  {:optimize true} (:end this))
-               (size-embedded 3 (:options this))])))
+    (write-embedded 3 (:options this) os)))
 
 (s/def :com.google.protobuf.messages.DescriptorProto-ExtensionRange/start int?)
 (s/def :com.google.protobuf.messages.DescriptorProto-ExtensionRange/end int?)
@@ -376,9 +347,7 @@
 (defn pb->DescriptorProto-ExtensionRange
   "Protobuf to DescriptorProto-ExtensionRange"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->DescriptorProto-ExtensionRange))
+  (cis->DescriptorProto-ExtensionRange (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; UninterpretedOption-NamePart
@@ -388,11 +357,7 @@
 
   (serialize [this os]
     (write-String 1  {:optimize true} (:name-part this) os)
-    (write-Bool 2  {:optimize true} (:is-extension this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name-part this))
-               (size-Bool 2  {:optimize true} (:is-extension this))])))
+    (write-Bool 2  {:optimize true} (:is-extension this) os)))
 
 (s/def :com.google.protobuf.messages.UninterpretedOption-NamePart/name-part string?)
 (s/def :com.google.protobuf.messages.UninterpretedOption-NamePart/is-extension boolean?)
@@ -429,9 +394,7 @@
 (defn pb->UninterpretedOption-NamePart
   "Protobuf to UninterpretedOption-NamePart"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->UninterpretedOption-NamePart))
+  (cis->UninterpretedOption-NamePart (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; FileDescriptorSet
@@ -440,10 +403,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-repeated write-embedded 1 (:file this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 1 (:file this))])))
+    (write-repeated write-embedded 1 (:file this) os)))
 
 (s/def ::FileDescriptorSet-spec (s/keys :opt-un []))
 (def FileDescriptorSet-defaults {:file []})
@@ -478,9 +438,7 @@
 (defn pb->FileDescriptorSet
   "Protobuf to FileDescriptorSet"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->FileDescriptorSet))
+  (cis->FileDescriptorSet (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; GeneratedCodeInfo-Annotation
@@ -492,13 +450,7 @@
     (write-repeated write-Int32 1 (:path this) os)
     (write-String 2  {:optimize true} (:source-file this) os)
     (write-Int32 3  {:optimize true} (:begin this) os)
-    (write-Int32 4  {:optimize true} (:end this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-Int32 1 (:path this))
-               (size-String 2  {:optimize true} (:source-file this))
-               (size-Int32 3  {:optimize true} (:begin this))
-               (size-Int32 4  {:optimize true} (:end this))])))
+    (write-Int32 4  {:optimize true} (:end this) os)))
 
 (s/def :com.google.protobuf.messages.GeneratedCodeInfo-Annotation/path (s/every int?))
 (s/def :com.google.protobuf.messages.GeneratedCodeInfo-Annotation/source-file string?)
@@ -539,9 +491,7 @@
 (defn pb->GeneratedCodeInfo-Annotation
   "Protobuf to GeneratedCodeInfo-Annotation"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->GeneratedCodeInfo-Annotation))
+  (cis->GeneratedCodeInfo-Annotation (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; MethodOptions
@@ -552,12 +502,7 @@
   (serialize [this os]
     (write-Bool 33  {:optimize true} (:deprecated this) os)
     (write-MethodOptions-IdempotencyLevel 34  {:optimize true} (:idempotency-level this) os)
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-Bool 33  {:optimize true} (:deprecated this))
-               (size-MethodOptions-IdempotencyLevel 34  {:optimize true} (:idempotency-level this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def :com.google.protobuf.messages.MethodOptions/deprecated boolean?)
 (s/def :com.google.protobuf.messages.MethodOptions/idempotency-level (s/or :keyword keyword? :int int?))
@@ -597,9 +542,7 @@
 (defn pb->MethodOptions
   "Protobuf to MethodOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->MethodOptions))
+  (cis->MethodOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; EnumDescriptorProto-EnumReservedRange
@@ -609,11 +552,7 @@
 
   (serialize [this os]
     (write-Int32 1  {:optimize true} (:start this) os)
-    (write-Int32 2  {:optimize true} (:end this) os))
-
-  (length [this]
-    (reduce + [(size-Int32 1  {:optimize true} (:start this))
-               (size-Int32 2  {:optimize true} (:end this))])))
+    (write-Int32 2  {:optimize true} (:end this) os)))
 
 (s/def :com.google.protobuf.messages.EnumDescriptorProto-EnumReservedRange/start int?)
 (s/def :com.google.protobuf.messages.EnumDescriptorProto-EnumReservedRange/end int?)
@@ -650,9 +589,7 @@
 (defn pb->EnumDescriptorProto-EnumReservedRange
   "Protobuf to EnumDescriptorProto-EnumReservedRange"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->EnumDescriptorProto-EnumReservedRange))
+  (cis->EnumDescriptorProto-EnumReservedRange (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; EnumValueDescriptorProto
@@ -663,12 +600,7 @@
   (serialize [this os]
     (write-String 1  {:optimize true} (:name this) os)
     (write-Int32 2  {:optimize true} (:number this) os)
-    (write-embedded 3 (:options this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-               (size-Int32 2  {:optimize true} (:number this))
-               (size-embedded 3 (:options this))])))
+    (write-embedded 3 (:options this) os)))
 
 (s/def :com.google.protobuf.messages.EnumValueDescriptorProto/name string?)
 (s/def :com.google.protobuf.messages.EnumValueDescriptorProto/number int?)
@@ -708,9 +640,7 @@
 (defn pb->EnumValueDescriptorProto
   "Protobuf to EnumValueDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->EnumValueDescriptorProto))
+  (cis->EnumValueDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; SourceCodeInfo-Location
@@ -723,14 +653,7 @@
     (write-repeated write-Int32 2 (:span this) os)
     (write-String 3  {:optimize true} (:leading-comments this) os)
     (write-String 4  {:optimize true} (:trailing-comments this) os)
-    (write-repeated write-String 6 (:leading-detached-comments this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-Int32 1 (:path this))
-               (size-repeated size-Int32 2 (:span this))
-               (size-String 3  {:optimize true} (:leading-comments this))
-               (size-String 4  {:optimize true} (:trailing-comments this))
-               (size-repeated size-String 6 (:leading-detached-comments this))])))
+    (write-repeated write-String 6 (:leading-detached-comments this) os)))
 
 (s/def :com.google.protobuf.messages.SourceCodeInfo-Location/path (s/every int?))
 (s/def :com.google.protobuf.messages.SourceCodeInfo-Location/span (s/every int?))
@@ -773,9 +696,7 @@
 (defn pb->SourceCodeInfo-Location
   "Protobuf to SourceCodeInfo-Location"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->SourceCodeInfo-Location))
+  (cis->SourceCodeInfo-Location (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; FieldOptions
@@ -790,16 +711,7 @@
     (write-Bool 5  {:optimize true} (:lazy this) os)
     (write-Bool 3  {:optimize true} (:deprecated this) os)
     (write-Bool 10  {:optimize true} (:weak this) os)
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-FieldOptions-CType 1  {:optimize true} (:ctype this))
-               (size-Bool 2  {:optimize true} (:packed this))
-               (size-FieldOptions-JSType 6  {:optimize true} (:jstype this))
-               (size-Bool 5  {:optimize true} (:lazy this))
-               (size-Bool 3  {:optimize true} (:deprecated this))
-               (size-Bool 10  {:optimize true} (:weak this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def :com.google.protobuf.messages.FieldOptions/ctype (s/or :keyword keyword? :int int?))
 (s/def :com.google.protobuf.messages.FieldOptions/packed boolean?)
@@ -847,9 +759,7 @@
 (defn pb->FieldOptions
   "Protobuf to FieldOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->FieldOptions))
+  (cis->FieldOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; EnumOptions
@@ -860,12 +770,7 @@
   (serialize [this os]
     (write-Bool 2  {:optimize true} (:allow-alias this) os)
     (write-Bool 3  {:optimize true} (:deprecated this) os)
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-Bool 2  {:optimize true} (:allow-alias this))
-               (size-Bool 3  {:optimize true} (:deprecated this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def :com.google.protobuf.messages.EnumOptions/allow-alias boolean?)
 (s/def :com.google.protobuf.messages.EnumOptions/deprecated boolean?)
@@ -905,9 +810,7 @@
 (defn pb->EnumOptions
   "Protobuf to EnumOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->EnumOptions))
+  (cis->EnumOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; MessageOptions
@@ -920,14 +823,7 @@
     (write-Bool 2  {:optimize true} (:no-standard-descriptor-accessor this) os)
     (write-Bool 3  {:optimize true} (:deprecated this) os)
     (write-Bool 7  {:optimize true} (:map-entry this) os)
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-Bool 1  {:optimize true} (:message-set-wire-format this))
-               (size-Bool 2  {:optimize true} (:no-standard-descriptor-accessor this))
-               (size-Bool 3  {:optimize true} (:deprecated this))
-               (size-Bool 7  {:optimize true} (:map-entry this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def :com.google.protobuf.messages.MessageOptions/message-set-wire-format boolean?)
 (s/def :com.google.protobuf.messages.MessageOptions/no-standard-descriptor-accessor boolean?)
@@ -971,9 +867,7 @@
 (defn pb->MessageOptions
   "Protobuf to MessageOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->MessageOptions))
+  (cis->MessageOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; EnumDescriptorProto
@@ -986,14 +880,7 @@
     (write-repeated write-embedded 2 (:value this) os)
     (write-embedded 3 (:options this) os)
     (write-repeated write-embedded 4 (:reserved-range this) os)
-    (write-repeated write-String 5 (:reserved-name this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-               (size-repeated size-embedded 2 (:value this))
-               (size-embedded 3 (:options this))
-               (size-repeated size-embedded 4 (:reserved-range this))
-               (size-repeated size-String 5 (:reserved-name this))])))
+    (write-repeated write-String 5 (:reserved-name this) os)))
 
 (s/def :com.google.protobuf.messages.EnumDescriptorProto/name string?)
 
@@ -1037,9 +924,7 @@
 (defn pb->EnumDescriptorProto
   "Protobuf to EnumDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->EnumDescriptorProto))
+  (cis->EnumDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; UninterpretedOption
@@ -1054,16 +939,7 @@
     (write-Int64 5  {:optimize true} (:negative-int-value this) os)
     (write-Double 6  {:optimize true} (:double-value this) os)
     (write-Bytes 7  {:optimize true} (:string-value this) os)
-    (write-String 8  {:optimize true} (:aggregate-value this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 2 (:name this))
-               (size-String 3  {:optimize true} (:identifier-value this))
-               (size-UInt64 4  {:optimize true} (:positive-int-value this))
-               (size-Int64 5  {:optimize true} (:negative-int-value this))
-               (size-Double 6  {:optimize true} (:double-value this))
-               (size-Bytes 7  {:optimize true} (:string-value this))
-               (size-String 8  {:optimize true} (:aggregate-value this))])))
+    (write-String 8  {:optimize true} (:aggregate-value this) os)))
 
 (s/def :com.google.protobuf.messages.UninterpretedOption/identifier-value string?)
 (s/def :com.google.protobuf.messages.UninterpretedOption/positive-int-value int?)
@@ -1110,9 +986,7 @@
 (defn pb->UninterpretedOption
   "Protobuf to UninterpretedOption"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->UninterpretedOption))
+  (cis->UninterpretedOption (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; ExtensionRangeOptions
@@ -1121,10 +995,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def ::ExtensionRangeOptions-spec (s/keys :opt-un []))
 (def ExtensionRangeOptions-defaults {:uninterpreted-option []})
@@ -1159,9 +1030,7 @@
 (defn pb->ExtensionRangeOptions
   "Protobuf to ExtensionRangeOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->ExtensionRangeOptions))
+  (cis->ExtensionRangeOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; DescriptorProto
@@ -1179,19 +1048,7 @@
     (write-repeated write-embedded 2 (:field this) os)
     (write-embedded 7 (:options this) os)
     (write-repeated write-embedded 8 (:oneof-decl this) os)
-    (write-repeated write-embedded 3 (:nested-type this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 9 (:reserved-range this))
-               (size-repeated size-embedded 4 (:enum-type this))
-               (size-repeated size-String 10 (:reserved-name this))
-               (size-repeated size-embedded 5 (:extension-range this))
-               (size-String 1  {:optimize true} (:name this))
-               (size-repeated size-embedded 6 (:extension this))
-               (size-repeated size-embedded 2 (:field this))
-               (size-embedded 7 (:options this))
-               (size-repeated size-embedded 8 (:oneof-decl this))
-               (size-repeated size-embedded 3 (:nested-type this))])))
+    (write-repeated write-embedded 3 (:nested-type this) os)))
 
 (s/def :com.google.protobuf.messages.DescriptorProto/reserved-name (s/every string?))
 
@@ -1246,9 +1103,7 @@
 (defn pb->DescriptorProto
   "Protobuf to DescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->DescriptorProto))
+  (cis->DescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; OneofOptions
@@ -1257,10 +1112,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def ::OneofOptions-spec (s/keys :opt-un []))
 (def OneofOptions-defaults {:uninterpreted-option []})
@@ -1295,9 +1147,7 @@
 (defn pb->OneofOptions
   "Protobuf to OneofOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->OneofOptions))
+  (cis->OneofOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; MethodDescriptorProto
@@ -1311,15 +1161,7 @@
     (write-String 3  {:optimize true} (:output-type this) os)
     (write-embedded 4 (:options this) os)
     (write-Bool 5  {:optimize true} (:client-streaming this) os)
-    (write-Bool 6  {:optimize true} (:server-streaming this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-               (size-String 2  {:optimize true} (:input-type this))
-               (size-String 3  {:optimize true} (:output-type this))
-               (size-embedded 4 (:options this))
-               (size-Bool 5  {:optimize true} (:client-streaming this))
-               (size-Bool 6  {:optimize true} (:server-streaming this))])))
+    (write-Bool 6  {:optimize true} (:server-streaming this) os)))
 
 (s/def :com.google.protobuf.messages.MethodDescriptorProto/name string?)
 (s/def :com.google.protobuf.messages.MethodDescriptorProto/input-type string?)
@@ -1365,9 +1207,7 @@
 (defn pb->MethodDescriptorProto
   "Protobuf to MethodDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->MethodDescriptorProto))
+  (cis->MethodDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; OneofDescriptorProto
@@ -1377,11 +1217,7 @@
 
   (serialize [this os]
     (write-String 1  {:optimize true} (:name this) os)
-    (write-embedded 2 (:options this) os))
-
-  (length [this]
-    (reduce + [(size-String 1  {:optimize true} (:name this))
-               (size-embedded 2 (:options this))])))
+    (write-embedded 2 (:options this) os)))
 
 (s/def :com.google.protobuf.messages.OneofDescriptorProto/name string?)
 
@@ -1419,9 +1255,7 @@
 (defn pb->OneofDescriptorProto
   "Protobuf to OneofDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->OneofDescriptorProto))
+  (cis->OneofDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; FileDescriptorProto
@@ -1441,21 +1275,7 @@
     (write-repeated write-Int32 11 (:weak-dependency this) os)
     (write-repeated write-Int32 10 (:public-dependency this) os)
     (write-repeated write-embedded 6 (:service this) os)
-    (write-embedded 8 (:options this) os))
-
-  (length [this]
-    (reduce + [(size-String 2  {:optimize true} (:package this))
-               (size-repeated size-embedded 4 (:message-type this))
-               (size-embedded 9 (:source-code-info this))
-               (size-repeated size-embedded 5 (:enum-type this))
-               (size-String 1  {:optimize true} (:name this))
-               (size-repeated size-embedded 7 (:extension this))
-               (size-repeated size-String 3 (:dependency this))
-               (size-String 12  {:optimize true} (:syntax this))
-               (size-repeated size-Int32 11 (:weak-dependency this))
-               (size-repeated size-Int32 10 (:public-dependency this))
-               (size-repeated size-embedded 6 (:service this))
-               (size-embedded 8 (:options this))])))
+    (write-embedded 8 (:options this) os)))
 
 (s/def :com.google.protobuf.messages.FileDescriptorProto/package string?)
 
@@ -1515,9 +1335,7 @@
 (defn pb->FileDescriptorProto
   "Protobuf to FileDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->FileDescriptorProto))
+  (cis->FileDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; DescriptorProto-ReservedRange
@@ -1527,11 +1345,7 @@
 
   (serialize [this os]
     (write-Int32 1  {:optimize true} (:start this) os)
-    (write-Int32 2  {:optimize true} (:end this) os))
-
-  (length [this]
-    (reduce + [(size-Int32 1  {:optimize true} (:start this))
-               (size-Int32 2  {:optimize true} (:end this))])))
+    (write-Int32 2  {:optimize true} (:end this) os)))
 
 (s/def :com.google.protobuf.messages.DescriptorProto-ReservedRange/start int?)
 (s/def :com.google.protobuf.messages.DescriptorProto-ReservedRange/end int?)
@@ -1568,9 +1382,7 @@
 (defn pb->DescriptorProto-ReservedRange
   "Protobuf to DescriptorProto-ReservedRange"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->DescriptorProto-ReservedRange))
+  (cis->DescriptorProto-ReservedRange (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; EnumValueOptions
@@ -1580,11 +1392,7 @@
 
   (serialize [this os]
     (write-Bool 1  {:optimize true} (:deprecated this) os)
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-Bool 1  {:optimize true} (:deprecated this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def :com.google.protobuf.messages.EnumValueOptions/deprecated boolean?)
 
@@ -1622,9 +1430,7 @@
 (defn pb->EnumValueOptions
   "Protobuf to EnumValueOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->EnumValueOptions))
+  (cis->EnumValueOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; FieldDescriptorProto
@@ -1642,19 +1448,7 @@
     (write-FieldDescriptorProto-Type 5  {:optimize true} (:type this) os)
     (write-embedded 8 (:options this) os)
     (write-String 2  {:optimize true} (:extendee this) os)
-    (write-String 7  {:optimize true} (:default-value this) os))
-
-  (length [this]
-    (reduce + [(size-FieldDescriptorProto-Label 4  {:optimize true} (:label this))
-               (size-String 10  {:optimize true} (:json-name this))
-               (size-String 1  {:optimize true} (:name this))
-               (size-Int32 9  {:optimize true} (:oneof-index this))
-               (size-Int32 3  {:optimize true} (:number this))
-               (size-String 6  {:optimize true} (:type-name this))
-               (size-FieldDescriptorProto-Type 5  {:optimize true} (:type this))
-               (size-embedded 8 (:options this))
-               (size-String 2  {:optimize true} (:extendee this))
-               (size-String 7  {:optimize true} (:default-value this))])))
+    (write-String 7  {:optimize true} (:default-value this) os)))
 
 (s/def :com.google.protobuf.messages.FieldDescriptorProto/label (s/or :keyword keyword? :int int?))
 (s/def :com.google.protobuf.messages.FieldDescriptorProto/json-name string?)
@@ -1708,9 +1502,7 @@
 (defn pb->FieldDescriptorProto
   "Protobuf to FieldDescriptorProto"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->FieldDescriptorProto))
+  (cis->FieldDescriptorProto (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; GeneratedCodeInfo
@@ -1719,10 +1511,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-repeated write-embedded 1 (:annotation this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 1 (:annotation this))])))
+    (write-repeated write-embedded 1 (:annotation this) os)))
 
 (s/def ::GeneratedCodeInfo-spec (s/keys :opt-un []))
 (def GeneratedCodeInfo-defaults {:annotation []})
@@ -1757,9 +1546,7 @@
 (defn pb->GeneratedCodeInfo
   "Protobuf to GeneratedCodeInfo"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->GeneratedCodeInfo))
+  (cis->GeneratedCodeInfo (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; FileOptions
@@ -1788,30 +1575,7 @@
     (write-Bool 31  {:optimize true} (:cc-enable-arenas this) os)
     (write-Bool 18  {:optimize true} (:py-generic-services this) os)
     (write-Bool 16  {:optimize true} (:cc-generic-services this) os)
-    (write-String 36  {:optimize true} (:objc-class-prefix this) os))
-
-  (length [this]
-    (reduce + [(size-String 40  {:optimize true} (:php-class-prefix this))
-               (size-Bool 17  {:optimize true} (:java-generic-services this))
-               (size-String 8  {:optimize true} (:java-outer-classname this))
-               (size-Bool 10  {:optimize true} (:java-multiple-files this))
-               (size-Bool 42  {:optimize true} (:php-generic-services this))
-               (size-String 41  {:optimize true} (:php-namespace this))
-               (size-String 11  {:optimize true} (:go-package this))
-               (size-FileOptions-OptimizeMode 9  {:optimize true} (:optimize-for this))
-               (size-Bool 27  {:optimize true} (:java-string-check-utf8 this))
-               (size-String 45  {:optimize true} (:ruby-package this))
-               (size-String 1  {:optimize true} (:java-package this))
-               (size-String 37  {:optimize true} (:csharp-namespace this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))
-               (size-String 44  {:optimize true} (:php-metadata-namespace this))
-               (size-Bool 23  {:optimize true} (:deprecated this))
-               (size-String 39  {:optimize true} (:swift-prefix this))
-               (size-Bool 20  {:optimize true} (:java-generate-equals-and-hash this))
-               (size-Bool 31  {:optimize true} (:cc-enable-arenas this))
-               (size-Bool 18  {:optimize true} (:py-generic-services this))
-               (size-Bool 16  {:optimize true} (:cc-generic-services this))
-               (size-String 36  {:optimize true} (:objc-class-prefix this))])))
+    (write-String 36  {:optimize true} (:objc-class-prefix this) os)))
 
 (s/def :com.google.protobuf.messages.FileOptions/php-class-prefix string?)
 (s/def :com.google.protobuf.messages.FileOptions/java-generic-services boolean?)
@@ -1887,9 +1651,7 @@
 (defn pb->FileOptions
   "Protobuf to FileOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->FileOptions))
+  (cis->FileOptions (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; SourceCodeInfo
@@ -1898,10 +1660,7 @@
   pb/Writer
 
   (serialize [this os]
-    (write-repeated write-embedded 1 (:location this) os))
-
-  (length [this]
-    (reduce + [(size-repeated size-embedded 1 (:location this))])))
+    (write-repeated write-embedded 1 (:location this) os)))
 
 (s/def ::SourceCodeInfo-spec (s/keys :opt-un []))
 (def SourceCodeInfo-defaults {:location []})
@@ -1936,9 +1695,7 @@
 (defn pb->SourceCodeInfo
   "Protobuf to SourceCodeInfo"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->SourceCodeInfo))
+  (cis->SourceCodeInfo (stream/new-cis input)))
 
 ;-----------------------------------------------------------------------------
 ; ServiceOptions
@@ -1948,11 +1705,7 @@
 
   (serialize [this os]
     (write-Bool 33  {:optimize true} (:deprecated this) os)
-    (write-repeated write-embedded 999 (:uninterpreted-option this) os))
-
-  (length [this]
-    (reduce + [(size-Bool 33  {:optimize true} (:deprecated this))
-               (size-repeated size-embedded 999 (:uninterpreted-option this))])))
+    (write-repeated write-embedded 999 (:uninterpreted-option this) os)))
 
 (s/def :com.google.protobuf.messages.ServiceOptions/deprecated boolean?)
 
@@ -1990,7 +1743,5 @@
 (defn pb->ServiceOptions
   "Protobuf to ServiceOptions"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis->ServiceOptions))
+  (cis->ServiceOptions (stream/new-cis input)))
 

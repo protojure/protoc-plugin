@@ -12,13 +12,14 @@ messages(generic_namespace, namespace, enums, messages, requires, rpcs, server, 
 ;;; Message Implementation of package <generic_namespace>
 ;;;----------------------------------------------------------------------------------
 (ns <generic_namespace>
-  (:require [protojure.protobuf :as pb]
-            [protojure.protobuf.serdes :refer :all]
+  (:require [protojure.protobuf.protocol :as pb]
+            [protojure.protobuf.serdes.core :refer :all]
+            [protojure.protobuf.serdes.complex :refer :all]
+            [protojure.protobuf.serdes.utils :refer [tag-map]]
+            [protojure.protobuf.serdes.stream :as stream]
             <requires:{dep|[<dep>]}; separator="\n">
             [clojure.set :as set]
-            [clojure.spec.alpha :as s])
-  (:import (com.google.protobuf
-            CodedInputStream)))
+            [clojure.spec.alpha :as s]))
 
 <if(messages.values)>
 ;;----------------------------------------------------------------------------------
@@ -77,13 +78,6 @@ emit_oneof_fields(name, ofields) ::=
          <ofields.values:{f|:<f.name> <emit_writer_field(f, "{:optimize false}", "v")>}; separator="\n">
          nil)))
 
-(defn size-<name> [<name>]
-  (let [field (first <name>)
-        k (when-not (nil? field) (key field))
-        v (when-not (nil? field) (val field))]
-    (case k
-      <ofields.values:{f|:<f.name> <emit_size_field(f, "{:optimize false}", "v")>}; separator="\n">
-      0)))
 <endif>
 >>
 
@@ -130,15 +124,12 @@ emit_enum(desc) ::=
 (def <desc.name>-label2val (set/map-invert <desc.name>-val2label))
 
 (defn cis-><desc.name> [is]
-  (let [val (.readEnum is)]
+  (let [val (cis->Enum is)]
     (get <desc.name>-val2label val val)))
 
 (defn- get-<desc.name> [value]
   {:pre [(or (int? value) (contains? <desc.name>-label2val value))]}
   (get <desc.name>-label2val value value))
-
-(defn size-<desc.name> [tag options value]
-  (size-Enum tag options (get-<desc.name> value)))
 
 (defn write-<desc.name> [tag options value os]
   (write-Enum tag options (get-<desc.name> value) os))
@@ -159,7 +150,6 @@ new_type(type)            ::= "<emit_type(type, \"new-\")>"
 new_field(desc, type)     ::= "<if(type.repeated)>#(map <new_type(type)> %)<else><new_type(type)><endif>"
 emit_reader_field(desc)   ::= "<desc.tag> [:<desc.name> <if(desc.ismap)><reader_map_field(desc.type)><else><reader_field(desc.type)><endif>]"
 emit_writer_field(desc, opt, val) ::= "(<writer_field(\"write\", desc, opt, val)> os)"
-emit_size_field(desc, opt, val) ::= "(<writer_field(\"size\", desc, opt, val)>)"
 emit_new_field(desc)      ::= "(cond-> (contains? init :<desc.name>) (update :<desc.name> <new_field(desc, desc.type)>))"
 emit_single_default(desc) ::= "<if(desc.type.default)>:<desc.name> <desc.type.default> <endif>"
 emit_default(desc)        ::= "<if(desc.type.repeated)>:<desc.name> [] <else><emit_single_default(desc)><endif>"
@@ -188,10 +178,7 @@ emit_message(namespace, desc) ::=
   pb/Writer
 
   (serialize [this os]
-    <desc.items.values:{field|<emit_writer_field(field,"{:optimize true}",false)>}; separator="\n">)
-
-  (length [this]
-    (reduce + [<desc.items.values:{field|<emit_size_field(field,"{:optimize true}",false)>}; separator="\n">])))
+    <desc.items.values:{field|<emit_writer_field(field,"{:optimize true}",false)>}; separator="\n">))
 
 <desc.items.values:{field|<emit_field_spec(namespace, desc, field)>}; separator="\n">
 (s/def ::<desc.name>-spec (s/keys :opt-un [<desc.items.values:{field|<emit_maybe_specname(namespace, desc,field)>}>]))
@@ -229,9 +216,7 @@ emit_message(namespace, desc) ::=
 (defn pb-><desc.name>
   "Protobuf to <desc.name>"
   [input]
-  (-> input
-      CodedInputStream/newInstance
-      cis-><desc.name>))
+  (cis-><desc.name> (stream/new-cis input)))
 
 >>
 

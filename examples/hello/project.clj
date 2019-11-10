@@ -9,7 +9,7 @@
                  [io.pedestal/pedestal.service "0.5.7"]
 
                  ;; -- PROTOC-GEN-CLOJURE --
-                 [protojure "1.0.1"]
+                 [protojure "1.1.0"]
                  ;; Include Undertow for supporting HTTP/2 for GRPCs
                  [io.undertow/undertow-core "2.0.28.Final"]
                  [io.undertow/undertow-servlet "2.0.28.Final"]
