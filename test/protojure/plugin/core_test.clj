@@ -38,7 +38,7 @@
     ;; JIT-require our 'com.example' namespaces now that they are available
     (require '[com.example.addressbook :as addressbook] :reload
              '[com.example.kitchensink :as example] :reload
-             '[com.example.kitchensink.Greeter :as example-server] :reload)))
+             '[com.example.kitchensink.Greeter.server :as example-server] :reload)))
 
 (generate-and-load-sample)
 

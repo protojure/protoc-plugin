@@ -11,7 +11,7 @@
 ;;-------------------------------------------------------------------
 ;; Entry point
 ;;
-;; This will cycle through the coll of impl-str in order to create
+;; This will cycle through the coll of templates in order to create
 ;; all the requested files. There are two loops because it is
 ;; possible to pass more than one proto file to the generator and
 ;; create more than one file per proto.
@@ -27,10 +27,11 @@
     (let [parameters (when parameter (-> parameter (clojure.string/split #",") set))
           server (contains? parameters "grpc-server")
           client (contains? parameters "grpc-client")
-          impl-strs (-> ["messages"]
-                        (cond-> (or server client) (conj "grpc")))
-          impls (->> (cartesian-product file-to-generate impl-strs)
-                     (mapcat (partial apply generate-impl protos server client)))]
+          templates (-> ["messages"]
+                        (cond-> (true? server) (conj "grpc-server"))
+                        (cond-> (true? client) (conj "grpc-client")))
+          impls (->> (cartesian-product file-to-generate templates)
+                     (mapcat (partial apply generate-impl protos)))]
       {:file impls})))
 
 (defn update-when
