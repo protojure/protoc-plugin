@@ -158,9 +158,12 @@
 ;;-------------------------------------------------------------------
 ;; Generate an output filename for a given input .proto file
 ;;-------------------------------------------------------------------
-(defn- generate-impl-name [protos file impl-str]
-  (-> (generate-impl-ns protos file impl-str)
-      package-to-filename))
+(defn- generate-impl-name [protos file template impl-str]
+  (let [base (generate-impl-ns protos file impl-str)]
+    (package-to-filename (case template
+                           "grpc-client" (str base ".client")
+                           "grpc-server" (str base ".server")
+                           base))))
 
 (defn- xform-pkg-to-opts-overrides [requires protos]
   (map (fn [req] (some (fn [e] (when (= req (:package e)) (or (:clojure-namespace (:options e)) (:java-package (:options e)) (:package e)))) (:inc-fmt protos))) requires))
@@ -621,24 +624,22 @@
 ;; Refer to the deftypes at the top of this ns for details on the contents
 ;; of each
 ;;-------------------------------------------------------------------
-(defn- generate-impl-content [protos server client file impl-str modded-rpcs]
+(defn- generate-impl-content [protos file template modded-rpcs]
   (let [gns (generate-impl-ns protos file nil)
-        ns (generate-impl-ns protos file (if modded-rpcs (first (keys modded-rpcs)) impl-str)) ;; first key of modded-rpcs names a Service
+        ns (generate-impl-ns protos file (if modded-rpcs (first (keys modded-rpcs)) template)) ;; first key of modded-rpcs names a Service
         src (ast/get-definition-by-src protos file)
         enums (generate-enums src)
         pre-map-msgs (generate-msgs protos src)
         msgs (update-fields-with-map-attr pre-map-msgs)
         services (if modded-rpcs modded-rpcs (build-services protos src)) ;; built services
         requires (generate-requires (xform-pkg-to-opts-overrides (:dependency (some (fn [e] (when (= (:name e) file) e)) (:inc-fmt protos))) protos))]
-    (render-template impl-str
+    (render-template template
                      [["generic_namespace" gns]
                       ["namespace" ns]
                       ["enums" enums]
                       ["messages" (build-msgs protos msgs)]
                       ["requires" (into-array String requires)]
-                      ["rpcs" services]
-                      ["server" server]
-                      ["client" client]])))
+                      ["rpcs" services]])))
 
 ;;-------------------------------------------------------------------
 ;; Generate the map of name and content
@@ -648,9 +649,9 @@
 ;;   impl-str:  function in stg
 ;;   m:         map of RPCs from a single service
 ;;-------------------------------------------------------------------
-(defn- gen-impl-map [protos server client file impl-name impl-str m]
-  {:name    (generate-impl-name protos file impl-name)
-   :content (generate-impl-content protos server client file impl-str (if m {impl-name (get m impl-name)} nil))})
+(defn- gen-impl-map [protos file impl-name template m]
+  {:name    (generate-impl-name protos file template impl-name)
+   :content (generate-impl-content protos file template (when m {impl-name (get m impl-name)}))})
 
 ;;-------------------------------------------------------------------
 ;; Top-level impl generation function
@@ -659,14 +660,17 @@
 ;; the stub or clients. Therefore there is a check on the impl-str
 ;; and the built collection of RPCs
 ;;-------------------------------------------------------------------
-(defn generate-impl [protos server client file impl-str]
+(defn generate-impl [protos file template]
   (let [src (ast/get-definition-by-src protos file)
         services (build-services protos src)]
-    (case impl-str
-      "messages" [(gen-impl-map protos server client file nil impl-str nil)]
-      "grpc"  (when (not-empty services)
-                (mapv (fn [rpc] (gen-impl-map protos server client file rpc impl-str {rpc (get services rpc)})) (keys services)))
-      nil)))
+    (cond
+      (= template "messages")
+      [(gen-impl-map protos file nil template nil)]
+
+      (not-empty services)
+      (mapv (fn [service-name] (gen-impl-map protos file service-name template {service-name (get services service-name)})) (keys services))
+
+      :default nil)))
 
 ;;-------------------------------------------------------------------
 ;; checks before processing, abort if error
