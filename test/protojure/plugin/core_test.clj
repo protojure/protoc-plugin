@@ -13,7 +13,8 @@
             [protojure.plugin.main :as main]
             [protojure.plugin.core :refer :all]
             [protojure.plugin.parse.core :refer :all]
-            [clojure.spec.test.alpha :as stest])
+            [clojure.spec.test.alpha :as stest]
+            [clojure.string :as string])
   (:import [java.io ByteArrayOutputStream]))
 
 (stest/instrument)
@@ -41,6 +42,12 @@
              '[com.example.kitchensink.Greeter.server :as example-server] :reload)))
 
 (generate-and-load-sample)
+
+(deftest cli-test
+  (testing "Ensure our CLI parsing works as advertised"
+    (is (= (main/-app "-h") 0))
+    (is (= (main/-app "-v") 0))
+    (is (= (main/-app "--foo") -1))))
 
 (deftest io-test
   (testing "Drive a sample request through plugin IO and ensure we get a 0 exit value"
