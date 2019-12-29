@@ -11,7 +11,7 @@
             [protojure.pedestal.routes :as pedestal.routes]
             [clojure.core.async :as async :refer [go >! <!!]]
             [com.example.addressbook :as example]
-            [com.example.addressbook.Greeter :as greeter]
+            [com.example.addressbook.Greeter.client :as greeter]
             [io.pedestal.http :as pedestal]
             [io.pedestal.http.body-params :as body-params]
             [protojure.grpc.client.api :as grpc]
@@ -47,5 +47,5 @@
 
 (deftest basic-grpc-check
   (testing "Check that a round-trip GRPC request works"
-    (let [resp @(greeter/call-Hello @(grpc.http2/connect {:uri (str "http://localhost:" (:port @test-env))}) {:name "Jane Doe"})]
+    (let [resp @(greeter/Hello @(grpc.http2/connect {:uri (str "http://localhost:" (:port @test-env))}) {:name "Jane Doe"})]
       (is (= "Hello, Jane Doe" (:message resp))))))
