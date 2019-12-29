@@ -3,7 +3,9 @@
 ;; SPDX-License-Identifier: Apache-2.0
 
 (ns protojure.plugin.main
-  (:require [protojure.protobuf :refer [->pb]]
+  (:require [clojure.tools.cli :refer [parse-opts]]
+            [clojure.string :as string]
+            [protojure.protobuf :refer [->pb]]
             [com.google.protobuf :as protobuf]
             [com.google.protobuf.compiler :as compiler]
             [protojure.plugin.core :as core])
@@ -35,12 +37,50 @@
    (catch [:type :protoc-clj-abort :dummy :dummyval] {:keys [msg retval]}
      [retval msg])))
 
+(def options
+  [["-h" "--help"]
+   ["-v" "--version" "Print the version and exit"]])
+
+(defn exit [status msg & rest]
+  (do
+    (apply println msg rest)
+    status))
+
+(defn version [] (str "protoc-gen-clojure version: v" (System/getProperty "protoc-gen-clojure.version")))
+
+(defn prep-usage [msg] (->> msg flatten (string/join \newline)))
+
+(defn usage [options-summary]
+  (prep-usage [(version)
+               ""
+               "Usage: protoc-gen-clojure [options]"
+               ""
+               "Options:"
+               options-summary]))
+
+(defn -app
+  [& args]
+  (let [{:keys [options arguments errors summary]} (parse-opts args options)]
+    (cond
+
+      (:help options)
+      (exit 0 (usage summary))
+
+      (not= errors nil)
+      (exit -1 "Error: " (string/join errors))
+
+      (:version options)
+      (exit 0 (version))
+
+      :else
+      (when-let [ret (execute (.. System in) (.. System out))]
+        (.println System/err (second ret))
+        (System/exit (first ret))))))
+
 (defn -main
   "plugin entrypoint: request/response protocol runs over stdin/out.
 
   protoc will send us a protobuf encoded CodeGeneratorRequest over stdin
   and expect a CodeGeneratorResponse on stdout."
   [& args]
-  (when-let [ret (execute (.. System in) (.. System out))]
-    (.println System/err (second ret))
-    (System/exit (first ret))))
+  (System/exit (apply -app args)))
