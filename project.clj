@@ -13,10 +13,10 @@
             [lein-cljfmt "0.5.7" :exclusions [org.clojure/clojure]]]
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [protojure "1.0.1"]
-                 [com.google.protobuf/protobuf-java "3.9.1"]
-                 [org.antlr/ST4 "4.1"]
+                 [com.google.protobuf/protobuf-java "3.11.1"]
+                 [org.antlr/ST4 "4.2"]
                  [slingshot "0.12.2"]
-                 [camel-snake-kebab "0.4.0"]
+                 [camel-snake-kebab "0.4.1"]
                  [org.clojure/math.combinatorics "0.1.6"]]
   :main ^:skip-aot protojure.plugin.main
   :bin {:name "protoc-gen-clojure"
