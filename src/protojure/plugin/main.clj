@@ -73,9 +73,11 @@
       (exit 0 (version))
 
       :else
-      (when-let [ret (execute (.. System in) (.. System out))]
-        (.println System/err (second ret))
-        (System/exit (first ret))))))
+      (if-let [ret (execute (.. System in) (.. System out))]
+        (do
+          (.println System/err (second ret))
+          (first ret))
+        0))))
 
 (defn -main
   "plugin entrypoint: request/response protocol runs over stdin/out.
