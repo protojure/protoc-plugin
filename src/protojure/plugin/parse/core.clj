@@ -166,7 +166,7 @@
                            base))))
 
 (defn- xform-pkg-to-opts-overrides [requires protos]
-  (map (fn [req] (some (fn [e] (when (= req (:package e)) (or (:clojure-namespace (:options e)) (:java-package (:options e)) (:package e)))) (:inc-fmt protos))) requires))
+  (map (fn [req] (some (fn [e] (when (= req (:package e)) (ast/get-fqpackage e))) (:inc-fmt protos))) requires))
 
 ;;-------------------------------------------------------------------
 ;; Initialize a new Descriptor structure
