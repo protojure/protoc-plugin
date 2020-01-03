@@ -626,12 +626,12 @@
 ;;-------------------------------------------------------------------
 (defn- generate-impl-content [protos file template modded-rpcs]
   (let [gns (generate-impl-ns protos file nil)
-        ns (generate-impl-ns protos file (if modded-rpcs (first (keys modded-rpcs)) template)) ;; first key of modded-rpcs names a Service
+        ns (generate-impl-ns protos file (when modded-rpcs (first (keys modded-rpcs)))) ;; first key of modded-rpcs names a Service
         src (ast/get-definition-by-src protos file)
         enums (generate-enums src)
         pre-map-msgs (generate-msgs protos src)
         msgs (update-fields-with-map-attr pre-map-msgs)
-        services (if modded-rpcs modded-rpcs (build-services protos src)) ;; built services
+        services (or modded-rpcs (build-services protos src)) ;; built services
         requires (generate-requires (xform-pkg-to-opts-overrides (:dependency (some (fn [e] (when (= (:name e) file) e)) (:inc-fmt protos))) protos))]
     (render-template template
                      [["generic_namespace" gns]

@@ -78,11 +78,11 @@
     (write-String 3  {:optimize true} (:email this) os)
     (write-repeated write-embedded 4 (:phones this) os)))
 
-(s/def :com.example.addressbook.messages.Person/name string?)
-(s/def :com.example.addressbook.messages.Person/id int?)
-(s/def :com.example.addressbook.messages.Person/email string?)
+(s/def :com.example.addressbook.Person/name string?)
+(s/def :com.example.addressbook.Person/id int?)
+(s/def :com.example.addressbook.Person/email string?)
 
-(s/def ::Person-spec (s/keys :opt-un [:com.example.addressbook.messages.Person/name :com.example.addressbook.messages.Person/id :com.example.addressbook.messages.Person/email ]))
+(s/def ::Person-spec (s/keys :opt-un [:com.example.addressbook.Person/name :com.example.addressbook.Person/id :com.example.addressbook.Person/email ]))
 (def Person-defaults {:name "" :id 0 :email "" :phones [] })
 
 (defn cis->Person
@@ -130,9 +130,9 @@
     (write-String 1  {:optimize true} (:number this) os)
     (write-Person-PhoneType 2  {:optimize true} (:type this) os)))
 
-(s/def :com.example.addressbook.messages.Person-PhoneNumber/number string?)
-(s/def :com.example.addressbook.messages.Person-PhoneNumber/type (s/or :keyword keyword? :int int?))
-(s/def ::Person-PhoneNumber-spec (s/keys :opt-un [:com.example.addressbook.messages.Person-PhoneNumber/number :com.example.addressbook.messages.Person-PhoneNumber/type ]))
+(s/def :com.example.addressbook.Person-PhoneNumber/number string?)
+(s/def :com.example.addressbook.Person-PhoneNumber/type (s/or :keyword keyword? :int int?))
+(s/def ::Person-PhoneNumber-spec (s/keys :opt-un [:com.example.addressbook.Person-PhoneNumber/number :com.example.addressbook.Person-PhoneNumber/type ]))
 (def Person-PhoneNumber-defaults {:number "" :type (Person-PhoneType-val2label 0) })
 
 (defn cis->Person-PhoneNumber
@@ -220,8 +220,8 @@
   (serialize [this os]
     (write-String 1  {:optimize true} (:message this) os)))
 
-(s/def :com.example.addressbook.messages.HelloResponse/message string?)
-(s/def ::HelloResponse-spec (s/keys :opt-un [:com.example.addressbook.messages.HelloResponse/message ]))
+(s/def :com.example.addressbook.HelloResponse/message string?)
+(s/def ::HelloResponse-spec (s/keys :opt-un [:com.example.addressbook.HelloResponse/message ]))
 (def HelloResponse-defaults {:message "" })
 
 (defn cis->HelloResponse
