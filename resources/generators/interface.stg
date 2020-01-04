@@ -170,12 +170,14 @@ emit_declares(desc) ::=
 (declare new-<desc.name>)
 >>
 
+emit_symbol(desc) ::= "<desc.name>-type"
+
 emit_message(namespace, desc) ::=
 <<
 ;-----------------------------------------------------------------------------
 ; <desc.name>
 ;-----------------------------------------------------------------------------
-(defrecord <desc.name> [<desc.items.values:{field|<field.name>}; separator=" ">]
+(defrecord <emit_symbol(desc)> [<desc.items.values:{field|<field.name>}; separator=" ">]
   pb/Writer
 
   (serialize [this os]
@@ -194,7 +196,7 @@ emit_message(namespace, desc) ::=
                <desc.items.values:{field|<process_reader_field(field)>}>
                [index (serdes.core/cis->undefined tag is)]))
          is)
-        (map-><desc.name>)))
+        (map-><emit_symbol(desc)>)))
 
 (defn ecis-><desc.name>
   "Embedded CodedInputStream to <desc.name>"
@@ -212,7 +214,7 @@ emit_message(namespace, desc) ::=
 <if(desc.ofields)>
       <desc.ofields.values:{field|(convert-<field.name>)}; separator="\n">
 <endif>
-      (map-><desc.name>)))
+      (map-><emit_symbol(desc)>)))
 
 (defn pb-><desc.name>
   "Protobuf to <desc.name>"
