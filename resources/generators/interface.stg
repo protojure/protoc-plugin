@@ -13,10 +13,10 @@ messages(generic_namespace, namespace, enums, messages, requires, rpcs, server, 
 ;;;----------------------------------------------------------------------------------
 (ns <namespace>
   (:require [protojure.protobuf.protocol :as pb]
-            [protojure.protobuf.serdes.core :refer :all]
-            [protojure.protobuf.serdes.complex :refer :all]
+            [protojure.protobuf.serdes.core :as serdes.core]
+            [protojure.protobuf.serdes.complex :as serdes.complex]
             [protojure.protobuf.serdes.utils :refer [tag-map]]
-            [protojure.protobuf.serdes.stream :as stream]
+            [protojure.protobuf.serdes.stream :as serdes.stream]
             <requires:{dep|[<dep>]}; separator="\n">
             [clojure.set :as set]
             [clojure.spec.alpha :as s]))
@@ -124,7 +124,7 @@ emit_enum(desc) ::=
 (def <desc.name>-label2val (set/map-invert <desc.name>-val2label))
 
 (defn cis-><desc.name> [is]
-  (let [val (cis->Enum is)]
+  (let [val (serdes.core/cis->Enum is)]
     (get <desc.name>-val2label val val)))
 
 (defn- get-<desc.name> [value]
@@ -132,20 +132,21 @@ emit_enum(desc) ::=
   (get <desc.name>-label2val value value))
 
 (defn write-<desc.name> [tag options value os]
-  (write-Enum tag options (get-<desc.name> value) os))
+  (serdes.core/write-Enum tag options (get-<desc.name> value) os))
 
 >>
 
+builtin_prefix(type)      ::= "<if(type.builtin)>serdes.core/<endif>"
 add_ns(type)              ::= "<if(type.ns)><type.ns>/<endif>"
-emit_type(type, prefix)   ::= "<add_ns(type)><prefix><type.type>"
+emit_type(type, prefix)   ::= "<if(type.builtin)><builtin_prefix(type)><else><add_ns(type)><endif><prefix><type.type>"
 reader_type(type)         ::= "<if(type.embedded)><emit_type(type, \"ecis->\")><else><emit_type(type, \"cis->\")><endif>"
 repeated_reader(type)     ::= "<if(type.packable)>packablerepeated tag<else>repeated<endif>"
-reader_field(type)        ::= "(<if(type.repeated)>cis-><repeated_reader(type)> <endif><reader_type(type)> is)"
-reader_map_field(type)    ::= "(cis->map ecis-><type.type> is)"
-writer_type(op, desc)     ::= "<op>-<if(desc.type.embedded)>embedded<else><desc.type.type><endif>"
-writer_repeated(op, desc) ::= "<if(desc.type.repeated)><op>-repeated <endif>"
+reader_field(type)        ::= "(<if(type.repeated)>serdes.complex/cis-><repeated_reader(type)> <endif><reader_type(type)> is)"
+reader_map_field(type)    ::= "(serdes.complex/cis->map ecis-><type.type> is)"
+writer_type(op, desc)     ::= "<if(desc.type.embedded)>serdes.core/<op>-embedded<else><builtin_prefix(desc.type)><op>-<desc.type.type><endif>"
+writer_repeated(op, desc) ::= "<if(desc.type.repeated)>serdes.complex/<op>-repeated <endif>"
 writer_opt(desc, opt) ::= "<if(!(desc.ismap||desc.type.embedded||desc.ofields||desc.type.repeated))> <opt> <endif>"
-writer_field(op, desc, opt, val) ::= "<if(desc.ismap)><op>-map new-<desc.type.type><else><writer_repeated(op, desc)><writer_type(op, desc)><endif> <if(desc.tag)><desc.tag><endif> <writer_opt(desc,opt)><if(val)><val><else>(:<desc.name> this)<endif>"
+writer_field(op, desc, opt, val) ::= "<if(desc.ismap)>serdes.complex/<op>-map new-<desc.type.type><else><writer_repeated(op, desc)><writer_type(op, desc)><endif> <if(desc.tag)><desc.tag><endif> <writer_opt(desc,opt)><if(val)><val><else>(:<desc.name> this)<endif>"
 new_type(type)            ::= "<emit_type(type, \"new-\")>"
 new_field(desc, type)     ::= "<if(type.repeated)>#(map <new_type(type)> %)<else><new_type(type)><endif>"
 emit_reader_field(desc)   ::= "<desc.tag> [:<desc.name> <if(desc.ismap)><reader_map_field(desc.type)><else><reader_field(desc.type)><endif>]"
@@ -191,14 +192,14 @@ emit_message(namespace, desc) ::=
          (fn [tag index]
              (case index
                <desc.items.values:{field|<process_reader_field(field)>}>
-               [index (cis->undefined tag is)]))
+               [index (serdes.core/cis->undefined tag is)]))
          is)
         (map-><desc.name>)))
 
 (defn ecis-><desc.name>
   "Embedded CodedInputStream to <desc.name>"
   [is]
-  (cis->embedded cis-><desc.name> is))
+  (serdes.core/cis->embedded cis-><desc.name> is))
 
 (defn new-<desc.name>
   "Creates a new instance from a map, similar to map-><desc.name> except that
@@ -216,7 +217,7 @@ emit_message(namespace, desc) ::=
 (defn pb-><desc.name>
   "Protobuf to <desc.name>"
   [input]
-  (cis-><desc.name> (stream/new-cis input)))
+  (cis-><desc.name> (serdes.stream/new-cis input)))
 
 >>
 

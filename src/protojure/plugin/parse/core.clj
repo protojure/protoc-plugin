@@ -58,6 +58,7 @@
 ;;
 ;;  `{:embedded nil,
 ;;   :repeated false,
+;;   :builtin true,
 ;;   :packable true,
 ;;   :ns nil,
 ;;   :type "Double",
@@ -65,7 +66,7 @@
 ;;   :spec "float?"}`
 ;;
 ;;-------------------------------------------------------------------
-(deftype ValueType [^Boolean embedded ^Boolean repeated ^Boolean packable ^String ns ^String type ^String default ^String spec])
+(deftype ValueType [^Boolean embedded ^Boolean repeated ^Boolean builtin ^Boolean packable ^String ns ^String type ^String default ^String spec])
 
 ;;-------------------------------------------------------------------
 ;; Define a Field type, which is passed to the STG to render .proto
@@ -281,7 +282,7 @@
               ->PascalCase
               (string/replace #"int" "Int")
               (string/replace #"fixed" "Fixed"))]
-    {:type t :packable true :default "0" :spec "int?"}))
+    {:type t :builtin true :packable true :default "0" :spec "int?"}))
 
 ;;-------------------------------------------------------------------
 ;; Generates a function that evaluates to the default (i.e. tag=0)
@@ -299,11 +300,11 @@
         :type-message {:ns ns :type fname :embedded true}
         :type-enum {:ns ns :type fname :packable true
                     :default (enum-default ns fname) :spec "(s/or :keyword keyword? :int int?)"}
-        :type-string {:type "String" :default "\"\"" :spec "string?"}
-        :type-bytes {:type "Bytes" :default "(byte-array 0)" :spec "bytes?"}
-        :type-bool {:type "Bool" :packable true :default "false" :spec "boolean?"}
-        :type-float {:type "Float" :packable true :default "0.0" :spec "float?"}
-        :type-double {:type "Double" :packable true :default "0.0" :spec "float?"}
+        :type-string {:type "String" :builtin true :default "\"\"" :spec "string?"}
+        :type-bytes {:type "Bytes" :builtin true :default "(byte-array 0)" :spec "bytes?"}
+        :type-bool {:type "Bool" :builtin true :packable true :default "false" :spec "boolean?"}
+        :type-float {:type "Float" :builtin true :packable true :default "0.0" :spec "float?"}
+        :type-double {:type "Double" :builtin true :packable true :default "0.0" :spec "float?"}
         :type-oneof {:ns ns :type fname}
         (decode-integer-field type))
       (assoc :repeated (= label :label-repeated))))
@@ -317,9 +318,9 @@
 ;;-------------------------------------------------------------------
 ;; Create a new instance of ->Field
 ;;-------------------------------------------------------------------
-(defn- new-field [{:keys [tag name isnested ismap oindex ofields] {:keys [embedded repeated packable type ns default spec]} :type}]
+(defn- new-field [{:keys [tag name isnested ismap oindex ofields] {:keys [embedded repeated builtin packable type ns default spec]} :type}]
   (let [cljname (clojurify-name name)
-        t (->ValueType embedded repeated packable ns type default spec)]
+        t (->ValueType embedded repeated builtin packable ns type default spec)]
     (vector cljname (->Field tag cljname t isnested ismap oindex ofields))))
 
 ;;-------------------------------------------------------------------
@@ -575,7 +576,7 @@
 ;; method functions - build Service.Method objects for ST4
 ;;-------------------------------------------------------------------
 (defn- new-method-type [{:keys [fname ns]}]
-  (->ValueType nil nil nil ns fname nil nil))
+  (->ValueType nil nil nil nil ns fname nil nil))
 
 (defn- new-method [{:keys [name param retval clientstreaming serverstreaming]}]
   (vector name (->Method name (new-method-type param) (new-method-type retval) clientstreaming serverstreaming)))
