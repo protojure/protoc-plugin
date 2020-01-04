@@ -143,9 +143,9 @@
 ;;-------------------------------------------------------------------
 ;; Generate our namespace based on the type and file string
 ;;-------------------------------------------------------------------
-(defn- generate-impl-ns [protos file impl-str]
-  (-> (ast/get-definition-by-src protos file)
-      ast/get-fqpackage
+(defn- generate-impl-ns [protos pkg impl-str]
+  (-> (ast/get-package protos pkg)
+      ast/get-namespace
       (str (when impl-str ".") impl-str)))
 
 ;;-------------------------------------------------------------------
@@ -158,15 +158,12 @@
 ;;-------------------------------------------------------------------
 ;; Generate an output filename for a given input .proto file
 ;;-------------------------------------------------------------------
-(defn- generate-impl-name [protos file template impl-str]
-  (let [base (generate-impl-ns protos file impl-str)]
+(defn- generate-impl-name [protos pkg template impl-str]
+  (let [base (generate-impl-ns protos pkg impl-str)]
     (package-to-filename (case template
                            "grpc-client" (str base ".client")
                            "grpc-server" (str base ".server")
                            base))))
-
-(defn- xform-pkg-to-opts-overrides [requires protos]
-  (map (fn [req] (some (fn [e] (when (= req (:package e)) (ast/get-fqpackage e))) (:inc-fmt protos))) requires))
 
 ;;-------------------------------------------------------------------
 ;; Initialize a new Descriptor structure
@@ -265,10 +262,10 @@
 ;;-------------------------------------------------------------------
 ;; Generate all of our enums
 ;;-------------------------------------------------------------------
-(defn- generate-enums [src]
-  (->> (:message-type src)
+(defn- generate-enums [desc]
+  (->> (:message-type desc)
        (map traverse-nested-enums)
-       (apply concat-clean (:enum-type src))
+       (apply concat-clean (:enum-type desc))
        build-enums))
 
 ;;-------------------------------------------------------------------
@@ -456,8 +453,8 @@
 ;; 2) It gives us a convenient structure to update in one place,
 ;;    e.g. type resolution
 ;;-------------------------------------------------------------------
-(defn- flatten-msgs [src]
-  (->> (:message-type src)
+(defn- flatten-msgs [desc]
+  (->> (:message-type desc)
        (mapv traverse-nested-msgs)
        (reduce concat)))
 
@@ -471,10 +468,10 @@
 ;; e.g. "foo.bar.baz" has higher priority than "foo.bar".
 ;;-------------------------------------------------------------------
 (defn- find-dependency [protos type-name]
-  (->> (ast/get-packages protos)
+  (->> (ast/list-packages protos)
        (filter (partial string/includes? type-name))
        (apply max-key count)
-       (ast/get-by-package protos)))
+       (ast/get-package protos)))
 
 ;;-------------------------------------------------------------------
 ;; Given a type-name such as ".tutorial.Person.PhoneType", we want
@@ -500,35 +497,35 @@
 ;;-------------------------------------------------------------------
 ;; augments a msg-type field with :package and :fname (function-name)
 ;;-------------------------------------------------------------------
-(defn- update-msg-field [protos {:keys [name] :as src} {:keys [type-name] :as field}]
+(defn- update-msg-field [protos {:keys [package] :as desc} {:keys [type-name] :as field}]
   (let [{:keys [dep fname]} (fqtype protos type-name)]
     (-> field
         (assoc :fname fname)
-        (cond-> (not= (:name dep) name)
-          (assoc :ns (ast/get-fqpackage dep))))))
+        (cond-> (not= (:package dep) package)
+          (assoc :ns (ast/get-namespace dep))))))
 
 ;;-------------------------------------------------------------------
 ;; Update any fields of :type-message or :type-enum
 ;;-------------------------------------------------------------------
-(defn- update-msg-fields [protos src fields]
+(defn- update-msg-fields [protos desc fields]
   (for [{:keys [type] :as field} fields]
     (if (contains? #{:type-message :type-enum} type)
-      (update-msg-field protos src field)
+      (update-msg-field protos desc field)
       field)))
 
 ;;-------------------------------------------------------------------
 ;; Iterate through all fields, and update the message/enum types
 ;;-------------------------------------------------------------------
-(defn- update-msg-type [protos src msg]
-  (update msg :fields (partial update-msg-fields protos src)))
+(defn- update-msg-type [protos desc msg]
+  (update msg :fields (partial update-msg-fields protos desc)))
 
 ;;-------------------------------------------------------------------
 ;; Generate all of our messages
 ;;-------------------------------------------------------------------
-(defn- generate-msgs [protos src]
+(defn- generate-msgs [protos desc]
   (mapv
-   (partial update-msg-type protos src)
-   (flatten-msgs src)))
+   (partial update-msg-type protos desc)
+   (flatten-msgs desc)))
 
 ;;-------------------------------------------------------------------
 ;; Render STG template by name and optional attributes
@@ -558,12 +555,21 @@
     reqs))
 
 ;;-------------------------------------------------------------------
+;; convert a canonical pkg to its namespace, factoring
+;; in things like 'java_package' options
+;;-------------------------------------------------------------------
+(defn get-namespace [protos pkg]
+  (ast/get-namespace (ast/get-package protos pkg)))
+
+;;-------------------------------------------------------------------
 ;; generate a deduplicated list of our dependencies by aggregating
 ;; all msg.field.ns and rpc.method.param/retval.ns attributes
 ;;-------------------------------------------------------------------
-(defn generate-requires [dep-pkgs]
-  (-> (distinct dep-pkgs)
-      format-requires))
+(defn generate-requires [protos desc]
+  (->> (:dependency desc)
+       (map (partial get-namespace protos))
+       (distinct)
+       (format-requires)))
 
 ;;-------------------------------------------------------------------
 ;; method functions - build Service.Method objects for ST4
@@ -587,7 +593,7 @@
   (let [{:keys [dep fname]} (fqtype protos type)]
     (-> {:fname fname}
         (cond-> (not= (:package dep) mypackage)
-          (assoc :ns (ast/get-fqpackage dep))))))
+          (assoc :ns (ast/get-namespace dep))))))
 
 ;;-------------------------------------------------------------------
 ;; generate a list of [:name :param :retval] tuples based on the
@@ -611,28 +617,28 @@
 ;; generate RPC entries to implement GRPCs as things like
 ;; pedestal interceptors or client stubs
 ;;-------------------------------------------------------------------
-(defn generate-rpcs [protos src]
-  (let [package (ast/get-fqpackage src)]
-    (for [{:keys [name method] :as svc} (:service src)]
-      {:name name :package package :methods (generate-methods protos src method)})))
+(defn generate-rpcs [protos desc]
+  (let [package (ast/get-namespace desc)]
+    (for [{:keys [name method] :as svc} (:service desc)]
+      {:name name :package package :methods (generate-methods protos desc method)})))
 
-(defn- build-services [protos src]
-  (->> (generate-rpcs protos src)
+(defn- build-services [protos desc]
+  (->> (generate-rpcs protos desc)
        (builder new-service)))
 
 ;;-------------------------------------------------------------------
 ;; Refer to the deftypes at the top of this ns for details on the contents
 ;; of each
 ;;-------------------------------------------------------------------
-(defn- generate-impl-content [protos file template modded-rpcs]
-  (let [gns (generate-impl-ns protos file nil)
-        ns (generate-impl-ns protos file (when modded-rpcs (first (keys modded-rpcs)))) ;; first key of modded-rpcs names a Service
-        src (ast/get-definition-by-src protos file)
-        enums (generate-enums src)
-        pre-map-msgs (generate-msgs protos src)
+(defn- generate-impl-content [protos pkg template modded-rpcs]
+  (let [gns (generate-impl-ns protos pkg nil)
+        ns (generate-impl-ns protos pkg (when modded-rpcs (first (keys modded-rpcs)))) ;; first key of modded-rpcs names a Service
+        desc (ast/get-package protos pkg)
+        enums (generate-enums desc)
+        pre-map-msgs (generate-msgs protos desc)
         msgs (update-fields-with-map-attr pre-map-msgs)
-        services (or modded-rpcs (build-services protos src)) ;; built services
-        requires (generate-requires (xform-pkg-to-opts-overrides (:dependency (some (fn [e] (when (= (:name e) file) e)) (:inc-fmt protos))) protos))]
+        services (or modded-rpcs (build-services protos desc)) ;; built services
+        requires (generate-requires protos desc)]
     (render-template template
                      [["generic_namespace" gns]
                       ["namespace" ns]
@@ -649,9 +655,9 @@
 ;;   impl-str:  function in stg
 ;;   m:         map of RPCs from a single service
 ;;-------------------------------------------------------------------
-(defn- gen-impl-map [protos file impl-name template m]
-  {:name    (generate-impl-name protos file template impl-name)
-   :content (generate-impl-content protos file template (when m {impl-name (get m impl-name)}))})
+(defn- gen-impl-map [protos pkg impl-name template m]
+  {:name    (generate-impl-name protos pkg template impl-name)
+   :content (generate-impl-content protos pkg template (when m {impl-name (get m impl-name)}))})
 
 ;;-------------------------------------------------------------------
 ;; Top-level impl generation function
@@ -660,15 +666,15 @@
 ;; the stub or clients. Therefore there is a check on the impl-str
 ;; and the built collection of RPCs
 ;;-------------------------------------------------------------------
-(defn generate-impl [protos file template]
-  (let [src (ast/get-definition-by-src protos file)
-        services (build-services protos src)]
+(defn generate-impl [protos pkg template]
+  (let [desc (ast/get-package protos pkg)
+        services (build-services protos desc)]
     (cond
       (= template "messages")
-      [(gen-impl-map protos file nil template nil)]
+      [(gen-impl-map protos pkg nil template nil)]
 
       (not-empty services)
-      (mapv (fn [service-name] (gen-impl-map protos file service-name template {service-name (get services service-name)})) (keys services))
+      (mapv (fn [service-name] (gen-impl-map protos pkg service-name template {service-name (get services service-name)})) (keys services))
 
       :default nil)))
 
@@ -676,5 +682,5 @@
 ;; checks before processing, abort if error
 ;;-------------------------------------------------------------------
 (defn validity-checks [protos]
-  (when-let [nilpkg (ast/get-by-package protos nil)]
+  (when-let [nilpkg (ast/get-package protos nil)]
     (util/abort -1 (str (:name nilpkg) " does not have a package name"))))

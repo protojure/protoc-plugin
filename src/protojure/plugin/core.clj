@@ -21,8 +21,9 @@
 ;; of the strings grpc-server,grpc-client in the `protoc --plugin`
 ;; string.
 ;;-------------------------------------------------------------------
-(defn generate [{:keys [file-to-generate proto-file parameter options] :as config}]
-  (let [protos (-> (update-dependency-names proto-file) (ast/new))]
+(defn generate [{:keys [proto-file parameter] :as config}]
+  (let [protos (ast/new (update-dependency-names proto-file))
+        pkgs (ast/list-packages protos)]
     (validity-checks protos)
     (let [parameters (when parameter (-> parameter (clojure.string/split #",") set))
           server (contains? parameters "grpc-server")
@@ -30,7 +31,7 @@
           templates (-> ["messages"]
                         (cond-> (true? server) (conj "grpc-server"))
                         (cond-> (true? client) (conj "grpc-client")))
-          impls (->> (cartesian-product file-to-generate templates)
+          impls (->> (cartesian-product pkgs templates)
                      (mapcat (partial apply generate-impl protos)))]
       {:file impls})))
 

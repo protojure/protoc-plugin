@@ -4,19 +4,28 @@
 
 (ns protojure.plugin.ast)
 
-(defn- key-by [pred proto-file]
-  (->> proto-file
-       (map #(vector (pred %) %))
-       (into {})))
+(defn- concat-desc
+  "partially concatenates two descriptors together"
+  [acc {:keys [message-type enum-type dependency service]}]
+  (-> acc
+      (update :message-type concat message-type)
+      (update :enum-type concat enum-type)
+      (update :dependency concat dependency)
+      (update :service concat service)))
+
+(defn- merge-desc
+  "(group-by) creates lists under each key, and we want to merge our packages back
+  together again.  We take the first descriptor as authoritative w.r.t. fields such
+  as 'options', and then partially merge select fields from subordinate descriptors
+  to form one namespace"
+  [desc]
+  (reduce concat-desc (first desc) (rest desc)))
 
 (defn new [proto-files]
-  (let [by-package (key-by :package proto-files)
-        by-src (key-by :name proto-files)]
-    {:by-package by-package
-     :by-src by-src
-     :inc-fmt proto-files}))
+  (->> (group-by :package proto-files)
+       (reduce (fn [acc [pkg desc]] (assoc acc pkg (merge-desc desc))) {})))
 
-(defn get-fqpackage [ast]
+(defn get-namespace [ast]
   (or
     ;; TODO .proto options are controlled fields that must be declared in descriptor.proto
     ;; See https://developers.google.com/protocol-buffers/docs/proto#customoptions
@@ -26,11 +35,8 @@
    (-> ast :options :java-package)
    (:package ast)))
 
-(defn get-by-package [{:keys [by-package] :as ast} package]
-  (get by-package package))
+(defn get-package [ast package]
+  (get ast package))
 
-(defn get-packages [{:keys [by-package] :as ast}]
-  (keys by-package))
-
-(defn get-definition-by-src [{:keys [by-src]} src]
-  (get by-src src))
+(defn list-packages [ast]
+  (keys ast))
