@@ -1,0 +1,13 @@
+syntax = "proto3";
+package com.example.addressbook;
+
+import "addressbook.proto";
+
+message GreeterReply {
+    string message = 1;
+}
+
+// RPC definitions
+service Greeter {
+    rpc Hello(Person) returns (GreeterReply);
+}

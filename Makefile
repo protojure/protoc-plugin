@@ -48,7 +48,7 @@ install: $(OUTPUT) $(PREFIX)$(BINDIR)
         --reqcapture_out=grpc-server,grpc-client:. \
         --plugin=$(CURDIR)/tools/protoc-gen-reqcapture \
 		--proto_path=$(CURDIR)/resources/testdata \
-		kitchensink.proto addressbook.proto nested/foobar.proto
+		kitchensink.proto addressbook.proto address-service.proto nested/foobar.proto
 
 clean:
 	@echo "Cleaning up.."

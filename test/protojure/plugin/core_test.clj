@@ -189,15 +189,6 @@
            :clientstreaming false
            :serverstreaming false}]}))
 
-(deftest requires-test
-  (testing "Check the ability to extract (requires) from message AST"
-    (let [requires (generate-requires ["com.bat" "foo" "bar" "foobar" "bat"])]
-      (is (seq? requires))
-      (is (every? string? requires))
-      (is (= (count requires) 5))
-      (is (apply distinct? requires))
-      (is (some (partial = "foo :as foo") requires)))))
-
 (defn- test-repeated [data]
   (let [result (-> (mapv byte data)
                    (byte-array)
@@ -245,3 +236,9 @@
   ;; namespace. See ->tablesyntax in protojure-lib.protojure.pedestal.routes for usage.
   (is (= (map :pkg example-server/rpc-metadata)
          (repeat 4 "com.example.kitchensink"))))
+
+(deftest merged-packages
+  (testing "Test to ensure our two addressbook packages are truly merged into one namespace")
+  (let [primary (addressbook/new-Person {:name "Foo"})
+        secondary (addressbook/new-GreeterReply {:message "Hello, Foo"})]
+    (is (and (some? primary) (some? secondary)))))
