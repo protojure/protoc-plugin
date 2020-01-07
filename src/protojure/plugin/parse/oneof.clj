@@ -1,4 +1,5 @@
-(ns protojure.plugin.parse.oneof)
+(ns protojure.plugin.parse.oneof
+  (:require [protojure.plugin.util :as util]))
 
 (declare adjust-fields)
 
@@ -105,12 +106,12 @@
       (nil? oi) (conj coll f)
       ;;--parent not created ?
       (nil? newf) (let [name (get-in oneofdecl [oi :name])]
-                    (conj coll {:name name
-                                :fname name
+                    (conj coll {:name        name
+                                :fname       (util/clojurify-name name)
                                 :oneof-index oi
-                                :type :type-oneof
-                                :label :label-optional
-                                :ofields [f]}))
+                                :type        :type-oneof
+                                :label       :label-optional
+                                :ofields     [f]}))
       ;;--update the parent with the passed oneof
       :default (update-in coll [inewf :ofields] (fn [of] (conj of f))))))
 

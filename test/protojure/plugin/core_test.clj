@@ -74,7 +74,7 @@
                :One {:ss {:s "and ss"}}
                :num 42
                ;--oneof with an enum
-               :AndAnotherOne {:aae :e1}
+               :AndAnother-One {:aae :e1}
                :seconds {:s "secondstr"}
                :eo {:s "eos"
                     ;-- oneof with a complex nested structure with another oneof

@@ -201,18 +201,12 @@
   (vector tag (->EnumDescriptor tag label)))
 
 ;;-------------------------------------------------------------------
-;; idiomatic protobuf uses snake-case, clojure uses kebab
-;;-------------------------------------------------------------------
-(defn- clojurify-name [name]
-  (string/replace name #"_" "-"))
-
-;;-------------------------------------------------------------------
 ;; for the input "TYPE_FOO" returns ":type-foo", suitable for
 ;;  enum label fields
 ;;-------------------------------------------------------------------
 (defn- enum2keyword [name]
   (->> name
-       (clojurify-name)
+       (util/clojurify-name)
        (string/lower-case)
        (str ":")))
 
@@ -319,7 +313,7 @@
 ;; Create a new instance of ->Field
 ;;-------------------------------------------------------------------
 (defn- new-field [{:keys [tag name isnested ismap oindex ofields] {:keys [embedded repeated builtin packable type ns default spec]} :type}]
-  (let [cljname (clojurify-name name)
+  (let [cljname (util/clojurify-name name)
         t (->ValueType embedded repeated builtin packable ns type default spec)]
     (vector cljname (->Field tag cljname t isnested ismap oindex ofields))))
 

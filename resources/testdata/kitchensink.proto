@@ -78,7 +78,7 @@ message OneOf {
         string s = 2;
         SimpleString ss = 3;
     }
-    oneof AndAnotherOne {
+    oneof AndAnother_One {
         string aas = 4;
         bool aab = 5;
         OEnum aae = 6;
