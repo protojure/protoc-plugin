@@ -5,10 +5,10 @@
 ;;;----------------------------------------------------------------------------------
 (ns com.example.addressbook
   (:require [protojure.protobuf.protocol :as pb]
-            [protojure.protobuf.serdes.core :refer :all]
-            [protojure.protobuf.serdes.complex :refer :all]
+            [protojure.protobuf.serdes.core :as serdes.core]
+            [protojure.protobuf.serdes.complex :as serdes.complex]
             [protojure.protobuf.serdes.utils :refer [tag-map]]
-            [protojure.protobuf.serdes.stream :as stream]
+            [protojure.protobuf.serdes.stream :as serdes.stream]
             [clojure.set :as set]
             [clojure.spec.alpha :as s]))
 
@@ -48,7 +48,7 @@
 (def Person-PhoneType-label2val (set/map-invert Person-PhoneType-val2label))
 
 (defn cis->Person-PhoneType [is]
-  (let [val (cis->Enum is)]
+  (let [val (serdes.core/cis->Enum is)]
     (get Person-PhoneType-val2label val val)))
 
 (defn- get-Person-PhoneType [value]
@@ -56,7 +56,7 @@
   (get Person-PhoneType-label2val value value))
 
 (defn write-Person-PhoneType [tag options value os]
-  (write-Enum tag options (get-Person-PhoneType value) os))
+  (serdes.core/write-Enum tag options (get-Person-PhoneType value) os))
 
 
 
@@ -69,14 +69,16 @@
 ;-----------------------------------------------------------------------------
 ; Person
 ;-----------------------------------------------------------------------------
-(defrecord Person [name id email phones]
+(defrecord Person-record [name id email phones]
   pb/Writer
-
   (serialize [this os]
-    (write-String 1  {:optimize true} (:name this) os)
-    (write-Int32 2  {:optimize true} (:id this) os)
-    (write-String 3  {:optimize true} (:email this) os)
-    (write-repeated write-embedded 4 (:phones this) os)))
+    (serdes.core/write-String 1  {:optimize true} (:name this) os)
+    (serdes.core/write-Int32 2  {:optimize true} (:id this) os)
+    (serdes.core/write-String 3  {:optimize true} (:email this) os)
+    (serdes.complex/write-repeated serdes.core/write-embedded 4 (:phones this) os))
+  pb/TypeReflection
+  (gettype [this]
+    "com.example.addressbook.Person"))
 
 (s/def :com.example.addressbook.Person/name string?)
 (s/def :com.example.addressbook.Person/id int?)
@@ -91,19 +93,19 @@
   (->> (tag-map Person-defaults
          (fn [tag index]
              (case index
-               1 [:name (cis->String is)]
-               2 [:id (cis->Int32 is)]
-               3 [:email (cis->String is)]
-               4 [:phones (cis->repeated ecis->Person-PhoneNumber is)]
+               1 [:name (serdes.core/cis->String is)]
+               2 [:id (serdes.core/cis->Int32 is)]
+               3 [:email (serdes.core/cis->String is)]
+               4 [:phones (serdes.complex/cis->repeated ecis->Person-PhoneNumber is)]
 
-               [index (cis->undefined tag is)]))
+               [index (serdes.core/cis->undefined tag is)]))
          is)
-        (map->Person)))
+        (map->Person-record)))
 
 (defn ecis->Person
   "Embedded CodedInputStream to Person"
   [is]
-  (cis->embedded cis->Person is))
+  (serdes.core/cis->embedded cis->Person is))
 
 (defn new-Person
   "Creates a new instance from a map, similar to map->Person except that
@@ -113,22 +115,26 @@
   {:pre [(if (s/valid? ::Person-spec init) true (throw (ex-info "Invalid input" (s/explain-data ::Person-spec init))))]}
   (-> (merge Person-defaults init)
       (cond-> (contains? init :phones) (update :phones #(map new-Person-PhoneNumber %)))
-      (map->Person)))
+      (map->Person-record)))
 
 (defn pb->Person
   "Protobuf to Person"
   [input]
-  (cis->Person (stream/new-cis input)))
+  (cis->Person (serdes.stream/new-cis input)))
+
+(def ^:protojure.protobuf.any/record Person-meta {:type "com.example.addressbook.Person" :decoder pb->Person})
 
 ;-----------------------------------------------------------------------------
 ; Person-PhoneNumber
 ;-----------------------------------------------------------------------------
-(defrecord Person-PhoneNumber [number type]
+(defrecord Person-PhoneNumber-record [number type]
   pb/Writer
-
   (serialize [this os]
-    (write-String 1  {:optimize true} (:number this) os)
-    (write-Person-PhoneType 2  {:optimize true} (:type this) os)))
+    (serdes.core/write-String 1  {:optimize true} (:number this) os)
+    (write-Person-PhoneType 2  {:optimize true} (:type this) os))
+  pb/TypeReflection
+  (gettype [this]
+    "com.example.addressbook.Person-PhoneNumber"))
 
 (s/def :com.example.addressbook.Person-PhoneNumber/number string?)
 (s/def :com.example.addressbook.Person-PhoneNumber/type (s/or :keyword keyword? :int int?))
@@ -141,17 +147,17 @@
   (->> (tag-map Person-PhoneNumber-defaults
          (fn [tag index]
              (case index
-               1 [:number (cis->String is)]
+               1 [:number (serdes.core/cis->String is)]
                2 [:type (cis->Person-PhoneType is)]
 
-               [index (cis->undefined tag is)]))
+               [index (serdes.core/cis->undefined tag is)]))
          is)
-        (map->Person-PhoneNumber)))
+        (map->Person-PhoneNumber-record)))
 
 (defn ecis->Person-PhoneNumber
   "Embedded CodedInputStream to Person-PhoneNumber"
   [is]
-  (cis->embedded cis->Person-PhoneNumber is))
+  (serdes.core/cis->embedded cis->Person-PhoneNumber is))
 
 (defn new-Person-PhoneNumber
   "Creates a new instance from a map, similar to map->Person-PhoneNumber except that
@@ -160,21 +166,25 @@
   [init]
   {:pre [(if (s/valid? ::Person-PhoneNumber-spec init) true (throw (ex-info "Invalid input" (s/explain-data ::Person-PhoneNumber-spec init))))]}
   (-> (merge Person-PhoneNumber-defaults init)
-      (map->Person-PhoneNumber)))
+      (map->Person-PhoneNumber-record)))
 
 (defn pb->Person-PhoneNumber
   "Protobuf to Person-PhoneNumber"
   [input]
-  (cis->Person-PhoneNumber (stream/new-cis input)))
+  (cis->Person-PhoneNumber (serdes.stream/new-cis input)))
+
+(def ^:protojure.protobuf.any/record Person-PhoneNumber-meta {:type "com.example.addressbook.Person-PhoneNumber" :decoder pb->Person-PhoneNumber})
 
 ;-----------------------------------------------------------------------------
 ; AddressBook
 ;-----------------------------------------------------------------------------
-(defrecord AddressBook [people]
+(defrecord AddressBook-record [people]
   pb/Writer
-
   (serialize [this os]
-    (write-repeated write-embedded 1 (:people this) os)))
+    (serdes.complex/write-repeated serdes.core/write-embedded 1 (:people this) os))
+  pb/TypeReflection
+  (gettype [this]
+    "com.example.addressbook.AddressBook"))
 
 (s/def ::AddressBook-spec (s/keys :opt-un []))
 (def AddressBook-defaults {:people [] })
@@ -185,16 +195,16 @@
   (->> (tag-map AddressBook-defaults
          (fn [tag index]
              (case index
-               1 [:people (cis->repeated ecis->Person is)]
+               1 [:people (serdes.complex/cis->repeated ecis->Person is)]
 
-               [index (cis->undefined tag is)]))
+               [index (serdes.core/cis->undefined tag is)]))
          is)
-        (map->AddressBook)))
+        (map->AddressBook-record)))
 
 (defn ecis->AddressBook
   "Embedded CodedInputStream to AddressBook"
   [is]
-  (cis->embedded cis->AddressBook is))
+  (serdes.core/cis->embedded cis->AddressBook is))
 
 (defn new-AddressBook
   "Creates a new instance from a map, similar to map->AddressBook except that
@@ -204,21 +214,25 @@
   {:pre [(if (s/valid? ::AddressBook-spec init) true (throw (ex-info "Invalid input" (s/explain-data ::AddressBook-spec init))))]}
   (-> (merge AddressBook-defaults init)
       (cond-> (contains? init :people) (update :people #(map new-Person %)))
-      (map->AddressBook)))
+      (map->AddressBook-record)))
 
 (defn pb->AddressBook
   "Protobuf to AddressBook"
   [input]
-  (cis->AddressBook (stream/new-cis input)))
+  (cis->AddressBook (serdes.stream/new-cis input)))
+
+(def ^:protojure.protobuf.any/record AddressBook-meta {:type "com.example.addressbook.AddressBook" :decoder pb->AddressBook})
 
 ;-----------------------------------------------------------------------------
 ; HelloResponse
 ;-----------------------------------------------------------------------------
-(defrecord HelloResponse [message]
+(defrecord HelloResponse-record [message]
   pb/Writer
-
   (serialize [this os]
-    (write-String 1  {:optimize true} (:message this) os)))
+    (serdes.core/write-String 1  {:optimize true} (:message this) os))
+  pb/TypeReflection
+  (gettype [this]
+    "com.example.addressbook.HelloResponse"))
 
 (s/def :com.example.addressbook.HelloResponse/message string?)
 (s/def ::HelloResponse-spec (s/keys :opt-un [:com.example.addressbook.HelloResponse/message ]))
@@ -230,16 +244,16 @@
   (->> (tag-map HelloResponse-defaults
          (fn [tag index]
              (case index
-               1 [:message (cis->String is)]
+               1 [:message (serdes.core/cis->String is)]
 
-               [index (cis->undefined tag is)]))
+               [index (serdes.core/cis->undefined tag is)]))
          is)
-        (map->HelloResponse)))
+        (map->HelloResponse-record)))
 
 (defn ecis->HelloResponse
   "Embedded CodedInputStream to HelloResponse"
   [is]
-  (cis->embedded cis->HelloResponse is))
+  (serdes.core/cis->embedded cis->HelloResponse is))
 
 (defn new-HelloResponse
   "Creates a new instance from a map, similar to map->HelloResponse except that
@@ -248,10 +262,12 @@
   [init]
   {:pre [(if (s/valid? ::HelloResponse-spec init) true (throw (ex-info "Invalid input" (s/explain-data ::HelloResponse-spec init))))]}
   (-> (merge HelloResponse-defaults init)
-      (map->HelloResponse)))
+      (map->HelloResponse-record)))
 
 (defn pb->HelloResponse
   "Protobuf to HelloResponse"
   [input]
-  (cis->HelloResponse (stream/new-cis input)))
+  (cis->HelloResponse (serdes.stream/new-cis input)))
+
+(def ^:protojure.protobuf.any/record HelloResponse-meta {:type "com.example.addressbook.HelloResponse" :decoder pb->HelloResponse})
 
