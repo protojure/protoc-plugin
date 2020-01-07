@@ -170,7 +170,8 @@ emit_declares(desc) ::=
 (declare new-<desc.name>)
 >>
 
-emit_symbol(desc) ::= "<desc.name>-type"
+emit_symbol(desc) ::= "<desc.name>-record"
+emit_record_type(namespace, desc) ::= "<namespace>.<desc.name>"
 
 emit_message(namespace, desc) ::=
 <<
@@ -179,9 +180,11 @@ emit_message(namespace, desc) ::=
 ;-----------------------------------------------------------------------------
 (defrecord <emit_symbol(desc)> [<desc.items.values:{field|<field.name>}; separator=" ">]
   pb/Writer
-
   (serialize [this os]
-    <desc.items.values:{field|<emit_writer_field(field,"{:optimize true}",false)>}; separator="\n">))
+    <desc.items.values:{field|<emit_writer_field(field,"{:optimize true}",false)>}; separator="\n">)
+  pb/TypeReflection
+  (gettype [this]
+    "<emit_record_type(namespace, desc)>"))
 
 <desc.items.values:{field|<emit_field_spec(namespace, desc, field)>}; separator="\n">
 (s/def ::<desc.name>-spec (s/keys :opt-un [<desc.items.values:{field|<emit_maybe_specname(namespace, desc,field)>}>]))
@@ -220,6 +223,8 @@ emit_message(namespace, desc) ::=
   "Protobuf to <desc.name>"
   [input]
   (cis-><desc.name> (serdes.stream/new-cis input)))
+
+(def ^:protojure.protobuf.any/record <desc.name>-meta {:type "<emit_record_type(namespace, desc)>" :decoder pb-><desc.name>})
 
 >>
 
