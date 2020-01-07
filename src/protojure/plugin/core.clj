@@ -22,7 +22,7 @@
 ;;-------------------------------------------------------------------
 (defn generate [{:keys [file-to-generate proto-file parameter] :as config}]
   (let [protos (ast/new proto-file)
-        pkgs (ast/deps-2-pkg proto-file file-to-generate)]
+        pkgs (distinct (ast/deps-2-pkg proto-file file-to-generate))]
     (validity-checks protos)
     (let [parameters (when parameter (-> parameter (clojure.string/split #",") set))
           server (contains? parameters "grpc-server")
