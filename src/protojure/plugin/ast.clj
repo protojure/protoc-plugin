@@ -62,15 +62,15 @@
        (group-by :package)
        (reduce (fn [acc [pkg desc]] (assoc acc pkg (merge-desc desc))) {})))
 
-(defn get-namespace [ast]
-  (or
+(defn get-namespace [{{:keys [java-package]} :options :keys [package] :as ast}]
+  (if-not (empty? java-package)
     ;; TODO .proto options are controlled fields that must be declared in descriptor.proto
     ;; See https://developers.google.com/protocol-buffers/docs/proto#customoptions
     ;; The below will not work, and the appropriate approach here is probably to PR to upstream to include the
     ;; top level clojure-namespace option in descriptor.proto
     ;; (-> ast :options :clojure-namespace)
-   (-> ast :options :java-package)
-   (:package ast)))
+    java-package
+    package))
 
 (defn get-package [ast package]
   (get ast package))
