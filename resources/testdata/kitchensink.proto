@@ -68,6 +68,15 @@ message EmbedOneOf {
     }
 }
 
+//dependent oneof
+message DependentOneOf {
+    string s = 1;
+    oneof DOneOf {
+        .com.example.addressbook.Person person = 2;
+        .com.example.nested.foobar.DependOnThis dependency = 3;
+    }
+}
+
 //message with oneof with a few combinations and variations
 //   . 2 oneofs and an embedded oneof
 //   . oneof's with messages and native types
