@@ -281,14 +281,16 @@ emit_rpc_client(service, ns) ::=
 emit_rpc_client_method(method, service, ns) ::=
 <<
 (defn <method.name>
-  [client params<if(method.serverstreaming)> reply<endif>]
+  ([client params<if(method.serverstreaming)> reply<endif>] (<method.name> client {} params<if(method.serverstreaming)> reply<endif>))
+  ([client metadata params<if(method.serverstreaming)> reply<endif>]
   (let [<if(!method.clientstreaming)>input (async/chan 1)<\n>        <endif><if(!method.serverstreaming)>output (async/chan 1)<\n>        <endif>desc {:service "<ns>.<service.name>"
               :method  "<method.name>"
               :input   {:f <if(method.param.ns)><method.param.ns><else><ns><endif>/new-<method.param.type> :ch <if(method.clientstreaming)>params<else>input<endif>}
-              :output  {:f <if(method.retval.ns)><method.retval.ns><else><ns><endif>/pb-><method.retval.type> :ch <if(method.serverstreaming)>reply<else>output<endif>}}]
+              :output  {:f <if(method.retval.ns)><method.retval.ns><else><ns><endif>/pb-><method.retval.type> :ch <if(method.serverstreaming)>reply<else>output<endif>}
+              :metadata metadata}]
     <if(!method.clientstreaming)>
     (-> (send-unary-params input params)
-        (p/then (fn [_] <else>    <endif><if(method.serverstreaming)>(grpc/invoke client desc)<else>(invoke-unary client desc output)<endif><if(method.clientstreaming)>))<else>)))))<endif>
+        (p/then (fn [_] <else>    <endif><if(method.serverstreaming)>(grpc/invoke client desc)<else>(invoke-unary client desc output)<endif><if(method.clientstreaming)>)))<else>))))))<endif>
 
 >>
 
