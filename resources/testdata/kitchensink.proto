@@ -51,6 +51,7 @@ message AllThingsMap {
     SimpleString sSimple = 5;
     OEnum oe = 6;
     repeated int32 r = 7;
+    repeated OEnum roe = 8;
 }
 
 message NestedMap {
