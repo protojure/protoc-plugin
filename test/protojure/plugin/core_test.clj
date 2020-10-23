@@ -130,6 +130,12 @@
                :sSimple {:s "simple"}
                :r [1 2 3 4]})))
 
+(deftest repeated-enum-test
+  (testing "Test repeated-enum map"
+    (pbverify example/new-AllThingsMap
+              example/pb->AllThingsMap
+              {:roe [:e1 :e2]})))
+
 (deftest nestedmaps-test
   (testing "repeated complex objects with maps"
     (pbverify example/new-NestedMap

@@ -131,8 +131,10 @@ emit_enum(desc) ::=
   {:pre [(or (int? value) (contains? <desc.name>-label2val value))]}
   (get <desc.name>-label2val value value))
 
-(defn write-<desc.name> [tag options value os]
-  (serdes.core/write-Enum tag options (get-<desc.name> value) os))
+(defn write-<desc.name>
+  ([tag value os] (write-<desc.name> tag {:optimize false} value os))
+  ([tag options value os]
+   (serdes.core/write-Enum tag options (get-<desc.name> value) os)))
 
 >>
 
