@@ -153,7 +153,7 @@
 ;; convert something like "foo.bar.baz" -> "foo/bar/baz.clj"
 ;;-------------------------------------------------------------------
 (defn- package-to-filename [pkg]
-  (-> (string/replace pkg #"\.|\_" "/")
+  (-> (string/replace pkg #"\." "/")
       (str ".cljc")))
 
 ;;-------------------------------------------------------------------
