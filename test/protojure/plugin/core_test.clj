@@ -39,7 +39,8 @@
     ;; JIT-require our 'com.example' namespaces now that they are available
     (require '[com.example.addressbook :as addressbook] :reload
              '[com.example.kitchensink :as example] :reload
-             '[com.example.kitchensink.Greeter.server :as example-server] :reload)))
+             '[com.example.kitchensink.Greeter.server :as example-server] :reload
+             '[grpc.gateway.protoc_gen_openapiv2.options :as openapi] :reload)))
 
 (generate-and-load-sample)
 
@@ -248,3 +249,10 @@
   (let [primary (addressbook/new-Person {:name "Foo"})
         secondary (addressbook/new-GreeterReply {:message "Hello, Foo"})]
     (is (and (some? primary) (some? secondary)))))
+
+(deftest snakecase-pkg-test
+  (testing "Test that packages with snakecase are handled properly"
+    (let [msg (-> (openapi/new-Foo {:bar "baz"})
+                  ->pb
+                  openapi/pb->Foo)]
+      (is (-> msg :bar (= "baz"))))))

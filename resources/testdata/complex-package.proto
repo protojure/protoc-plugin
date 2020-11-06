@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package grpc.gateway.protoc_gen_openapiv2.options;
+
+message Foo {
+    string bar = 1;
+}
