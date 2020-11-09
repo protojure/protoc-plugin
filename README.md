@@ -11,7 +11,7 @@ One way to do that is to use:
 
 ## Usage
 
-```protoc --clojure_out=src ...```
+View our [online documentation](https://protojure.readthedocs.io)
 
 ## License
 
