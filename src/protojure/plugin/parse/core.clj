@@ -283,7 +283,7 @@
 ;; enum value
 ;;-------------------------------------------------------------------
 (defn- enum-default [ns name]
-  (str "(" (when (some? ns) (str ns "/")) name "-val2label 0)"))
+  (str (when (some? ns) (str ns "/")) name "-default"))
 
 ;;-------------------------------------------------------------------
 ;; Decode a type like 'type-string' to a map for initializing
