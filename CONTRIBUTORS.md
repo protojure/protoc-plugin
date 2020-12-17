@@ -5,3 +5,4 @@
 - Matt Rkiouak <mrkiouak@statestreet.com>
 - Jon Andrews <jandrews1@statestreet.com>
 - George Lindsell <glindsell@statestreet.com>
+- Sean Harrap <sean.harrap@gmail.com>
