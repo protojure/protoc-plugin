@@ -14,7 +14,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [protojure "1.5.11"]
                  [protojure/google.protobuf "0.9.1"]
-                 [com.google.protobuf/protobuf-java "3.13.0"]
+                 [com.google.protobuf/protobuf-java "3.14.0"]
                  [org.antlr/ST4 "4.3.1"]
                  [slingshot "0.12.2"]
                  [camel-snake-kebab "0.4.2"]

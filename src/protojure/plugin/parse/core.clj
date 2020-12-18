@@ -86,7 +86,7 @@
 ;;   :ofields {}}`
 ;;
 ;;-------------------------------------------------------------------
-(deftype Field [^String tag ^String name ^ValueType type ^Boolean isnested ^Boolean ismap ^Integer oindex ^ArrayList ofields])
+(deftype Field [^String tag ^String name ^ValueType type ^Boolean isnested ^Boolean ismap ^Integer oindex ^ArrayList ofields ^String oparentname])
 
 ;;-------------------------------------------------------------------
 ;; Define a wrapper type for Field above, providing the top-level name
@@ -312,10 +312,10 @@
 ;;-------------------------------------------------------------------
 ;; Create a new instance of ->Field
 ;;-------------------------------------------------------------------
-(defn- new-field [{:keys [tag name isnested ismap oindex ofields] {:keys [embedded repeated builtin packable type ns default spec]} :type}]
+(defn- new-field [{:keys [tag name isnested ismap oindex ofields oparentname] {:keys [embedded repeated builtin packable type ns default spec]} :type}]
   (let [cljname (util/clojurify-name name)
         t (->ValueType embedded repeated builtin packable ns type default spec)]
-    (vector cljname (->Field tag cljname t isnested ismap oindex ofields))))
+    (vector cljname (->Field tag cljname t isnested ismap oindex ofields oparentname))))
 
 ;;-------------------------------------------------------------------
 ;; Builds a statement for a msg::field
@@ -325,7 +325,7 @@
 ;; 26 [:email (.readStringRequireUtf8 is)]
 ;; 34 [:phones (partial cons (parse-embedded -parse-Person-PhoneNumber is))]
 ;;-------------------------------------------------------------------
-(defn- build-msg-field [protos oneofdecl {:keys [name number type type-name ismap ofields] :as field}]
+(defn- build-msg-field [protos oneofdecl {:keys [name number type type-name ismap ofields oparentname] :as field}]
   (let [isnested (nested? field)
         ofs (->> ofields
                  (map (fn [f] (new-field {:tag (:number f)
@@ -334,6 +334,7 @@
                                           :ismap (:ismap f)
                                           :oindex (oneof/get-index oneofdecl f)
                                           :ofields nil
+                                          :oparentname oparentname
                                           :type (decode-field-type protos f)})))
                  (into {}))
         type (decode-field-type protos field)]
@@ -343,6 +344,7 @@
                 :ismap ismap
                 :oindex (oneof/get-index oneofdecl field)
                 :ofields ofs
+                :oparentname oparentname
                 :type type})))
 
 ;;-------------------------------------------------------------------

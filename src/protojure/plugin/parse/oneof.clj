@@ -83,9 +83,9 @@
 ;;     )
 ;;    :oneofdecl ["FirstOneof", "TheStrings"]}
 ;;-------------------------------------------------------------------
-(defn adjust-msg [{:keys [oneofdecl] :as msg}]
+(defn adjust-msg [{:keys [name oneofdecl] :as msg}]
   (cond-> msg (not (empty? oneofdecl))
-          (update-in [:fields] (partial adjust-fields oneofdecl))))
+          (update-in [:fields] (partial adjust-fields name oneofdecl))))
 
 (defn valid? [oneofdecl {:keys [oneof-index] :as field}]
   (contains? oneofdecl oneof-index))
@@ -97,7 +97,7 @@
 ;;-------------------------------------------------------------------
 ;; Add oneof fields to the appropriate parent field
 ;;-------------------------------------------------------------------
-(defn- adjust-field [oneofdecl coll f]
+(defn- adjust-field [parent-name oneofdecl coll f]
   (let [oi (get-index oneofdecl f)
         newf (first (filter #(when-let [oiother (get-index oneofdecl %)] (when (= oi oiother) %)) coll))
         inewf (.indexOf coll newf)]
@@ -107,7 +107,9 @@
       ;;--parent not created ?
       (nil? newf) (let [name (get-in oneofdecl [oi :name])]
                     (conj coll {:name        name
-                                :fname       (util/clojurify-name name)
+                                :oparentname parent-name
+                                :fname       (util/clojurify-name
+                                              (str parent-name "-" name))
                                 :oneof-index oi
                                 :type        :type-oneof
                                 :label       :label-optional
@@ -115,8 +117,8 @@
       ;;--update the parent with the passed oneof
       :default (update-in coll [inewf :ofields] (fn [of] (conj of f))))))
 
-(defn- adjust-fields [oneofdecl fields]
+(defn- adjust-fields [parent-name oneofdecl fields]
   (reduce
    (fn [coll f]
-     (adjust-field oneofdecl coll f))
+     (adjust-field parent-name oneofdecl coll f))
    [] fields))
