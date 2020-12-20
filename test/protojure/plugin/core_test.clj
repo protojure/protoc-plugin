@@ -40,9 +40,9 @@
     (require '[com.example.addressbook :as addressbook] :reload
              '[com.example.kitchensink :as example] :reload
              '[com.example.kitchensink.Greeter.server :as example-server] :reload
-             '[com.example.enum_proto :as enum-proto]
-             '[com.example.enum_proto2 :as enum-proto2]
-             '[com.example.enum_proto3 :as enum-proto3]
+             '[com.example.enum_proto :as enum-proto] :reload
+             '[com.example.enum_proto2 :as enum-proto2] :reload
+             '[com.example.enum_proto3 :as enum-proto3] :reload
              '[grpc.gateway.protoc_gen_openapiv2.options :as openapi] :reload)))
 
 (generate-and-load-sample)
