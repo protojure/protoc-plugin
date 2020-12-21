@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package com.example.enum_proto2;
+
+enum E {
+  B = 1;
+  A = 0;
+  C = 2;
+}
+
+message M {
+  optional E e = 1;
+}

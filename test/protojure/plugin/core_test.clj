@@ -40,6 +40,9 @@
     (require '[com.example.addressbook :as addressbook] :reload
              '[com.example.kitchensink :as example] :reload
              '[com.example.kitchensink.Greeter.server :as example-server] :reload
+             '[com.example.enum_proto :as enum-proto] :reload
+             '[com.example.enum_proto2 :as enum-proto2] :reload
+             '[com.example.enum_proto3 :as enum-proto3] :reload
              '[grpc.gateway.protoc_gen_openapiv2.options :as openapi] :reload)))
 
 (generate-and-load-sample)
@@ -65,6 +68,16 @@
                    pb->f)
         [diff-tx diff-rx _] (data/diff msg-tx msg-rx)]
     (assert (and (nil? diff-tx) (nil? diff-rx)))))
+
+(deftest proto3-enum-defaults
+  (testing "round-trip"
+    (pbverify enum-proto/new-M enum-proto/pb->M {})
+    (pbverify enum-proto2/new-M enum-proto2/pb->M {})
+    (pbverify enum-proto3/new-M enum-proto3/pb->M {}))
+  (testing "defaults by language"
+    (is (= :c (-> {} enum-proto/new-M :e)))
+    (is (= :b (-> {} enum-proto2/new-M :e)))
+    (is (= :a (-> {} enum-proto3/new-M :e)))))
 
 (deftest oneof-test
   (testing "oneof support"

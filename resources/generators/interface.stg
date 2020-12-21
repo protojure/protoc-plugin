@@ -118,6 +118,8 @@ emit_enum(desc) ::=
 ;-----------------------------------------------------------------------------
 ; <desc.name>
 ;-----------------------------------------------------------------------------
+(def <desc.name>-default <first(desc.items.values).label>)
+
 (def <desc.name>-val2label {
   <desc.items.values:{case|<emit_enum_label(case)>}; separator="\n">})
 

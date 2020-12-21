@@ -1,0 +1,11 @@
+package com.example.enum_proto;
+
+enum E {
+  C = 2;
+  A = 0;
+  B = 1;
+}
+
+message M {
+  optional E e = 1;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package com.example.enum_proto3;
+
+enum E {
+  A = 0;
+  B = 1;
+  C = 2;
+}
+
+message M {
+  E e = 1;
+}
