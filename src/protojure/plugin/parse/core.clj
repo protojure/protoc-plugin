@@ -36,7 +36,6 @@
 ;;
 ;;-------------------------------------------------------------------
 
-
 ;;-------------------------------------------------------------------
 ;; Define an EnumDescriptor type, which is passed to the STG in order
 ;; to render .proto [Enums](https://developers.google.com/protocol-buffers/docs/proto3#enum)
