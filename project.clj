@@ -1,9 +1,9 @@
-(defproject protoc-gen-clojure "1.0.1-SNAPSHOT"
+(defproject protoc-gen-clojure "2.0.0-SNAPSHOT"
   :description "Protobuf protoc compiler plugin to generate native Clojure support for Google Protocol Buffers and GRPC"
   :url "http://github.com/protojure/protoc-plugin"
   :license {:name "Apache License 2.0"
             :url "https://www.apache.org/licenses/LICENSE-2.0"
-            :year 2019
+            :year 2022
             :key "apache-2.0"}
   :javac-options ["-target" "1.8" "-source" "1.8"]
   :jvm-opts ["-server"]
@@ -12,9 +12,8 @@
             [lein-cloverage "1.2.2" :exclusions [org.clojure/clojure]]
             [lein-cljfmt "0.8.0" :exclusions [org.clojure/clojure]]]
   :dependencies [[org.clojure/clojure "1.10.3"]
-                 [protojure "1.7.0"]
-                 [protojure/google.protobuf "0.9.1"]
-                 [com.google.protobuf/protobuf-java "3.19.1"]
+                 [io.github.protojure/core "2.0.1"]
+                 [io.github.protojure/google.protobuf "2.0.0"]
                  [org.antlr/ST4 "4.3.1"]
                  [slingshot "0.12.2"]
                  [camel-snake-kebab "0.4.2"]

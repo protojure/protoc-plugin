@@ -9,15 +9,7 @@
                  [io.pedestal/pedestal.service "0.5.9"]
 
                  ;; -- PROTOC-GEN-CLOJURE --
-                 [protojure "1.7.0"]
-                 ;; Include Undertow for supporting HTTP/2 for GRPCs
-                 [io.undertow/undertow-core "2.2.14.Final"]
-                 [io.undertow/undertow-servlet "2.2.14.Final"]
-                 ;; And of course, protobufs
-                 [com.google.protobuf/protobuf-java "3.19.1"]
-
-                 ;; -- PROTOC_GEN_CLOJURE CLIENT DEP --
-                 [org.eclipse.jetty.http2/http2-client "11.0.7"]
+                 [io.github.protojure/grpc-server "2.0.1"]
 
                  [ch.qos.logback/logback-classic "1.2.10" :exclusions [org.slf4j/slf4j-api]]
                  [org.slf4j/jul-to-slf4j "1.7.32"]
@@ -26,6 +18,7 @@
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]
   :profiles {:dev {:aliases {"run-dev" ["trampoline" "run" "-m" "hello.server/run-dev"]}
-                   :dependencies [[io.pedestal/pedestal.service-tools "0.5.9"]]}
+                   :dependencies [[io.pedestal/pedestal.service-tools "0.5.9"]
+                                  [io.github.protojure/grpc-client "2.0.1"]]}
              :uberjar {:aot [hello.server]}}
   :main ^{:skip-aot true} hello.server)
