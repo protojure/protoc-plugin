@@ -1,4 +1,4 @@
-(defproject protoc-gen-clojure "2.0.0-SNAPSHOT"
+(defproject protoc-gen-clojure "2.0.0"
   :description "Protobuf protoc compiler plugin to generate native Clojure support for Google Protocol Buffers and GRPC"
   :url "http://github.com/protojure/protoc-plugin"
   :license {:name "Apache License 2.0"
