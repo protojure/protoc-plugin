@@ -19,33 +19,38 @@
 
 (stest/instrument)
 
-(defn- generate-and-load-sample []
-  (let [{:keys [file]} (->> (io/resource "testdata/protoc.request")
+(defn- generate-sample [output-dir protoc-request-file]
+  (let [{:keys [file]} (->> (io/resource protoc-request-file)
                             io/input-stream
                             main/decode-request
-                            (generate))
-        dir (io/file "target/test")]
-
-    ;; Ensure we start fresh
-    (fs/delete-dir dir)
+                            (generate))]
 
     ;; Write the file(s) to our temp-dir
     (doseq [{:keys [name content]} file]
-      (let [h (io/file dir name)
+      (let [h (io/file output-dir name)
             parent (.getParent h)]
         (fs/mkdirs parent)
-        (spit h content)))
+        (spit h content)))))
 
-    ;; JIT-require our 'com.example' namespaces now that they are available
-    (require '[com.example.addressbook :as addressbook] :reload
-             '[com.example.kitchensink :as example] :reload
-             '[com.example.kitchensink.Greeter.server :as example-server] :reload
-             '[com.example.enum_proto :as enum-proto] :reload
-             '[com.example.enum_proto2 :as enum-proto2] :reload
-             '[com.example.enum_proto3 :as enum-proto3] :reload
-             '[grpc.gateway.protoc_gen_openapiv2.options :as openapi] :reload)))
+(defn- generate-and-load-samples []
+  (let [output-dir (io/file "target/test")]
+    ;; Ensure we start fresh
+    (fs/delete-dir output-dir)
+    (generate-sample output-dir "testdata/protoc.request")
+    (generate-sample output-dir "testdata/toaster.protoc.request"))
 
-(generate-and-load-sample)
+  ;; JIT-require our 'com.example' namespaces now that they are available
+  (require '[com.example.addressbook :as addressbook] :reload
+           '[com.example.kitchensink :as example] :reload
+           '[com.example.kitchensink.Greeter.server :as example-server] :reload
+           '[com.example.kitchen.toaster.Toaster.client :as toaster-client] :reload
+           '[com.example.kitchen.toaster.Toaster.server :as toaster-server] :reload
+           '[com.example.enum_proto :as enum-proto] :reload
+           '[com.example.enum_proto2 :as enum-proto2] :reload
+           '[com.example.enum_proto3 :as enum-proto3] :reload
+           '[grpc.gateway.protoc_gen_openapiv2.options :as openapi] :reload))
+
+(generate-and-load-samples)
 
 (deftest cli-test
   (testing "Ensure our CLI parsing works as advertised"
@@ -132,6 +137,11 @@
                   addressbook/pb->Person)
           type (-> msg :phones first :type)]
       (is (= type :mobile)))))
+
+(deftest java-package-test
+  (testing "Check to ensure that code generated with java_package uses the correct service name"
+    (is (= "kitchen.toaster.Toaster" toaster-client/Toaster-service-name))
+    (is (= "kitchen.toaster.Toaster" toaster-server/Toaster-service-name))))
 
 (deftest allthingsmap-test
   (testing "Test all things map"
