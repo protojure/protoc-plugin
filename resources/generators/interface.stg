@@ -101,6 +101,8 @@ emit_rpc(service, generic_namespace) ::=
 (defprotocol Service
   <service.methods.values:{method|(<method.name> [this param])}; separator="\n">)
 
+(def <service.name>-service-name "<generic_namespace>.<service.name>")
+
 <service.methods.values:{desc|<emit_rpc_method(service, desc)>}; separator="\n">
 
 (def ^:const rpc-metadata
@@ -278,6 +280,8 @@ emit_rpc_client(service, ns) ::=
 ;-----------------------------------------------------------------------------
 ; GRPC Client Implementation
 ;-----------------------------------------------------------------------------
+
+(def <service.name>-service-name "<ns>.<service.name>")
 
 <service.methods.values:{method_desc|<emit_rpc_client_method(method_desc, service, ns)>}; separator="\n">
 >>
