@@ -1,0 +1,16 @@
+syntax = "proto3";
+package kitchen.toaster;
+option java_package = "com.example.kitchen.toaster";
+
+message ToastRequest {
+  int64 time = 1;
+}
+
+message ToastResponse {
+
+}
+
+// RPC definitions
+service Toaster {
+    rpc Toast(ToastRequest) returns (ToastResponse);
+}

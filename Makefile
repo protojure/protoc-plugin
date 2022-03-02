@@ -19,7 +19,7 @@ PROTOS += $(wildcard resources/testdata/*.proto)
 
 all: scan test test-example bin
 
-testdata: resources/testdata/protoc.request
+testdata: resources/testdata/protoc.request resources/testdata/toaster.protoc.request
 
 scan:
 	$(LEIN) cljfmt check
@@ -43,13 +43,20 @@ $(PREFIX)$(BINDIR):
 install: $(OUTPUT) $(PREFIX)$(BINDIR)
 	cp $(OUTPUT) $(PREFIX)$(BINDIR)
 
-%.request: $(PROTOS) Makefile
+resources/testdata/protoc.request: $(PROTOS) Makefile
 	REQCAPTURE_OUTPUT=$@ protoc \
         --reqcapture_out=grpc-server,grpc-client:. \
         --plugin=$(CURDIR)/tools/protoc-gen-reqcapture \
-		--proto_path=$(CURDIR)/resources/testdata \
-		kitchensink.proto addressbook.proto address-service.proto nested/foobar.proto complex-package.proto \
-		enum-proto.proto enum-proto2.proto enum-proto3.proto
+				--proto_path=$(CURDIR)/resources/testdata \
+				kitchensink.proto addressbook.proto address-service.proto nested/foobar.proto complex-package.proto \
+				enum-proto.proto enum-proto2.proto enum-proto3.proto
+
+resources/testdata/toaster.protoc.request: $(PROTOS) Makefile
+	REQCAPTURE_OUTPUT=$@ protoc \
+        --reqcapture_out=grpc-server,grpc-client:. \
+        --plugin=$(CURDIR)/tools/protoc-gen-reqcapture \
+				--proto_path=$(CURDIR)/resources/testdata \
+				toaster.proto
 
 clean:
 	@echo "Cleaning up.."
