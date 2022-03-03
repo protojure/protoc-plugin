@@ -32,7 +32,7 @@
   :repl-options {:init-ns user}
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "1.2.0"]
-                                  [io.pedestal/pedestal.service "0.5.9" :exclusions  [org.clojure/tools.reader]]
+                                  [io.pedestal/pedestal.service "0.5.10" :exclusions  [org.clojure/tools.reader]]
                                   [me.raynes/fs "1.4.6" :exclusions [org.apache.commons/commons-compress]]]
                    :source-paths ["target/test"]}
              :uberjar {:aot :all}})
