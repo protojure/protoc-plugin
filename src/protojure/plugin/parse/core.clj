@@ -148,6 +148,10 @@
       ast/get-namespace
       (str (when impl-str ".") impl-str)))
 
+(defn- generate-impl-package [protos pkg]
+  (-> (ast/get-package protos pkg)
+      (:package)))
+
 ;;-------------------------------------------------------------------
 ;; convert something like "foo.bar.baz" -> "foo/bar/baz.clj"
 ;;-------------------------------------------------------------------
@@ -627,7 +631,8 @@
 ;; of each
 ;;-------------------------------------------------------------------
 (defn- generate-impl-content [protos pkg template modded-rpcs]
-  (let [gns (generate-impl-ns protos pkg nil)
+  (let [package (generate-impl-package protos pkg)
+        gns (generate-impl-ns protos pkg nil)
         ns (generate-impl-ns protos pkg (when modded-rpcs (first (keys modded-rpcs)))) ;; first key of modded-rpcs names a Service
         desc (ast/get-package protos pkg)
         enums (generate-enums desc)
@@ -636,7 +641,8 @@
         services (or modded-rpcs (build-services protos desc)) ;; built services
         requires (generate-requires protos desc)]
     (render-template template
-                     [["generic_namespace" gns]
+                     [["package" package]
+                      ["generic_namespace" gns]
                       ["namespace" ns]
                       ["enums" enums]
                       ["messages" (build-msgs protos msgs)]
