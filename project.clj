@@ -9,15 +9,15 @@
   :jvm-opts ["-server"]
   :java-source-paths ["src"]
   :plugins [[lein-bin "0.3.5"]
-            [lein-cloverage "1.2.2" :exclusions [org.clojure/clojure]]
-            [lein-cljfmt "0.8.0" :exclusions [org.clojure/clojure]]]
-  :dependencies [[org.clojure/clojure "1.10.3"]
-                 [io.github.protojure/core "2.0.9"]
-                 [io.github.protojure/grpc-client "2.0.9"]
-                 [io.github.protojure/google.protobuf "2.0.0"]
-                 [org.antlr/ST4 "4.3.1"]
+            [lein-cloverage "1.2.4" :exclusions [org.clojure/clojure]]
+            [lein-cljfmt "0.8.2" :exclusions [org.clojure/clojure]]]
+  :dependencies [[org.clojure/clojure "1.11.1"]
+                 [io.github.protojure/core "2.3.1"]
+                 [io.github.protojure/grpc-client "2.3.1"]
+                 [io.github.protojure/google.protobuf "2.0.1"]
+                 [org.antlr/ST4 "4.3.3"]
                  [slingshot "0.12.2"]
-                 [camel-snake-kebab "0.4.2"]
+                 [camel-snake-kebab "0.4.3"]
                  [org.clojure/math.combinatorics "0.1.6"]
                  [org.clojure/tools.cli "1.0.206"]]
   :main ^:skip-aot protojure.plugin.main
@@ -31,7 +31,7 @@
   ;; because that's where our development helper functions like (refresh) live.
   :repl-options {:init-ns user}
 
-  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "1.2.0"]
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "1.3.0"]
                                   [io.pedestal/pedestal.service "0.5.10" :exclusions  [org.clojure/tools.reader]]
                                   [me.raynes/fs "1.4.6" :exclusions [org.apache.commons/commons-compress]]]
                    :source-paths ["target/test"]}
