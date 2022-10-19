@@ -12,14 +12,14 @@
             [lein-cloverage "1.2.4" :exclusions [org.clojure/clojure]]
             [lein-cljfmt "0.8.2" :exclusions [org.clojure/clojure]]]
   :dependencies [[org.clojure/clojure "1.11.1"]
-                 [io.github.protojure/core "2.3.1"]
-                 [io.github.protojure/grpc-client "2.3.1"]
+                 [io.github.protojure/core "2.5.0"]
+                 [io.github.protojure/grpc-client "2.5.0"]
                  [io.github.protojure/google.protobuf "2.0.1"]
-                 [org.antlr/ST4 "4.3.3"]
+                 [org.antlr/ST4 "4.3.4"]
                  [slingshot "0.12.2"]
                  [camel-snake-kebab "0.4.3"]
                  [org.clojure/math.combinatorics "0.1.6"]
-                 [org.clojure/tools.cli "1.0.206"]]
+                 [org.clojure/tools.cli "1.0.214"]]
   :main ^:skip-aot protojure.plugin.main
   :bin {:name "protoc-gen-clojure"
         :bin-path "target"
